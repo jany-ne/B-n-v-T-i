@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bean & Bloom - Quán Cà Phê</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Georgia, serif; color: #3b2a20; background: #faf5ee; line-height: 1.6; }
+    html, body { overflow-x: hidden; }
+    img { max-width: 100%; height: auto; }
+    header { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; padding: 16px 24px; background: #3b2a20; color: #faf5ee; }
+    header nav a { color: #faf5ee; text-decoration: none; margin-left: 20px; }
+    .hero { text-align: center; padding: 100px 20px; background: linear-gradient(rgba(59,42,32,.6), rgba(59,42,32,.6)), #8b5e3c; color: #fff; }
+    .hero h1 { font-size: 2.5rem; margin-bottom: 12px; }
+    .hero a { display: inline-block; margin-top: 20px; padding: 12px 28px; background: #d9a066; color: #3b2a20; text-decoration: none; border-radius: 6px; }
+    section { padding: 60px 24px; max-width: 1000px; margin: 0 auto; }
+    h2 { text-align: center; margin-bottom: 30px; }
+    .menu { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.1); min-width: 0; overflow-wrap: anywhere; }
+    @media (min-width: 640px) { .menu { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { .menu { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 480px) {
+      .hero { padding: 60px 16px; }
+      .hero h1 { font-size: 1.75rem; }
+      section { padding: 40px 16px; }
+    }
+    .card span { color: #8b5e3c; font-weight: bold; }
+    footer { text-align: center; padding: 30px; background: #3b2a20; color: #faf5ee; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Bean &amp; Bloom</strong>
+    <nav>
+      <a href="#menu">Menu</a>
+      <a href="#lien-he">Liên hệ</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>Một tách cà phê, một ngày tươi mới</h1>
+    <p>Cà phê rang xay thủ công, không gian ấm cúng.</p>
+    <a href="#menu">Xem menu</a>
+  </div>
+
+  <section id="menu">
+    <h2>Menu</h2>
+    <div class="menu">
+      <div class="card"><h3>Cà phê sữa</h3><p>Đậm đà, béo nhẹ.</p><span>35.000đ</span></div>
+      <div class="card"><h3>Bạc xỉu</h3><p>Nhiều sữa, ít cà phê.</p><span>35.000đ</span></div>
+      <div class="card"><h3>Cold brew</h3><p>Ủ lạnh 18 tiếng.</p><span>45.000đ</span></div>
+      <div class="card"><h3>Latte</h3><p>Espresso và sữa tươi.</p><span>50.000đ</span></div>
+      <div class="card"><h3>Cappuccino</h3><p>Bọt sữa mịn.</p><span>50.000đ</span></div>
+      <div class="card"><h3>Trà đào</h3><p>Thanh mát, thơm nhẹ.</p><span>40.000đ</span></div>
+    </div>
+  </section>
+
+  <section id="lien-he">
+    <h2>Liên hệ</h2>
+    <p style="text-align:center">123 Đường Hoa Cúc, Quận 1<br>Mở cửa 7:00 - 22:00 · 0900 000 000</p>
+  </section>
+
+  <footer>© 2026 Bean &amp; Bloom</footer>
+</body>
+</html>
