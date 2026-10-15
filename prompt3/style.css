@@ -397,7 +397,7 @@ button:focus-visible {
 .lead { margin: 0 0 24px; text-align: center; color: var(--text-muted); }
 #dat-ban h1, .section h1 { margin: 0 0 12px; text-align: center; }
 
-.admin-logout { padding: 8px 16px; border: 1px solid var(--header-text); border-radius: 6px; background: transparent; color: var(--header-text); font: inherit; cursor: pointer; }
+.admin-logout { margin: 0 0 16px; padding: 8px 16px; border: 1px solid var(--primary); border-radius: 6px; background: transparent; color: var(--primary); font: inherit; cursor: pointer; }
 .table-wrap { overflow-x: auto; }
 .admin-table { width: 100%; border-collapse: collapse; background: var(--surface); box-shadow: var(--shadow); }
 .admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--bg-alt); text-align: left; vertical-align: top; }
