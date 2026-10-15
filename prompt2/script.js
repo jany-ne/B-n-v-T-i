@@ -117,19 +117,3 @@
       });
   }
 })();
-
-(function () {
-  // Chỉ nạp Google Maps khi khách bấm, để trang nhẹ và không có cookie bên thứ ba
-  const frame = document.querySelector('.map-frame');
-  const button = frame && frame.querySelector('.map-load');
-  if (!button) return;
-
-  button.addEventListener('click', function () {
-    const iframe = document.createElement('iframe');
-    iframe.title = 'Bản đồ vị trí quán Bạn & Tôi';
-    iframe.src = frame.dataset.src;
-    iframe.referrerPolicy = 'no-referrer-when-downgrade';
-    iframe.allowFullscreen = true;
-    frame.replaceChildren(iframe);
-  });
-})();
