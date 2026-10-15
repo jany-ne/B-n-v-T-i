@@ -39,6 +39,11 @@
       if (!v.trim()) return 'Vui lòng nhập email.';
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Email chưa đúng định dạng.';
     },
+    phone: function (v) {
+      const digits = v.replace(/[\s.\-()]/g, '');
+      if (!digits) return 'Vui lòng nhập số điện thoại.';
+      return /^(0|\+84)\d{9}$/.test(digits) ? '' : 'Số điện thoại chưa đúng (VD: 0900 000 000).';
+    },
     message: function (v) { return v.trim().length >= 10 ? '' : 'Lời nhắn cần ít nhất 10 ký tự.'; }
   };
 
