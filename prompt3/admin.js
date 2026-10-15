@@ -63,7 +63,6 @@
     token = t;
     loginForm.hidden = true;
     panel.hidden = false;
-    logout.hidden = false;
     load();
   }
 
@@ -72,7 +71,6 @@
     clearSession();
     rows.replaceChildren();
     panel.hidden = true;
-    logout.hidden = true;
     loginForm.hidden = false;
     if (message) {
       loginStatus.textContent = message;
@@ -85,7 +83,6 @@
     token = null;
     rows.replaceChildren();
     panel.hidden = true;
-    logout.hidden = true;
     loginForm.hidden = false;
   });
 
