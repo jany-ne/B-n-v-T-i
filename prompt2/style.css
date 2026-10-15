@@ -390,3 +390,8 @@ button:focus-visible {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
+.hero-actions .btn { margin-top: 0; }
+.btn-outline { background: transparent; color: #fff; border: 2px solid #fff; }
+.btn-outline:hover { background: #fff; color: #3b2a20; filter: none; }
