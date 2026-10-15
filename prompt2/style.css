@@ -227,6 +227,44 @@ button:focus-visible {
 
 .contact p { margin: 4px 0; }
 
+.contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+}
+
+.contact-form { max-width: 520px; width: 100%; margin-inline: auto; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; margin-bottom: 4px; font-weight: bold; }
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--text-muted);
+  border-radius: 6px;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field [aria-invalid="true"] { border-color: #c0392b; }
+.field-error { margin: 4px 0 0; font-size: 0.9rem; color: #c0392b; }
+.contact-form .btn { margin-top: 0; border: 0; font: inherit; font-weight: bold; cursor: pointer; }
+.form-status { margin: 12px 0 0; font-weight: bold; color: var(--primary); }
+
+@media (prefers-color-scheme: dark) {
+  .field [aria-invalid="true"] { border-color: #ff7b6b; }
+  .field-error { color: #ff7b6b; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
   padding: 28px 0;
@@ -251,6 +289,15 @@ button:focus-visible {
   }
 
   .review-grid { gap: 20px; }
+
+  .contact-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px;
+    align-items: start;
+  }
+
+  .contact { text-align: left; }
+  .contact-form { margin-inline: 0; }
 }
 
 /* ---------- Breakpoint 1024px: menu ngang, 3 cột ---------- */
