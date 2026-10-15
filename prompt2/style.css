@@ -191,10 +191,13 @@ button:focus-visible {
 
 .card {
   background: var(--surface);
-  padding: 20px;
   border-radius: 8px;
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
+
+.card img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.card-body { padding: 20px; }
 
 .card h3 { margin: 0 0 6px; }
 .card p { margin: 0 0 12px; color: var(--text-muted); }
