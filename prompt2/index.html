@@ -17,6 +17,7 @@
   <meta property="og:title" content="Bạn &amp; Tôi - Quán Cà Phê">
   <meta property="og:description" content="Cà phê rang xay thủ công, không gian ấm cúng giữa lòng thành phố.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E☕%3C/text%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="images/hero.jpg" fetchpriority="high">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -150,9 +151,9 @@
         </div>
 
         <div class="map">
-          <iframe title="Bản đồ vị trí quán Bạn &amp; Tôi"
-            src="https://www.google.com/maps?q=H%E1%BA%BBm+290+%C4%90%C6%B0%E1%BB%9Dng+D%C6%B0%C6%A1ng+B%C3%A1+Tr%E1%BA%A1c%2C+Ph%C6%B0%E1%BB%9Dng+Ch%C3%A1nh+H%C6%B0ng%2C+TP.HCM&amp;output=embed"
-            width="600" height="360" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <div class="map-frame" data-src="https://www.google.com/maps?q=H%E1%BA%BBm+290+%C4%90%C6%B0%E1%BB%9Dng+D%C6%B0%C6%A1ng+B%C3%A1+Tr%E1%BA%A1c%2C+Ph%C6%B0%E1%BB%9Dng+Ch%C3%A1nh+H%C6%B0ng%2C+TP.HCM&amp;output=embed">
+            <button type="button" class="map-load">Xem bản đồ</button>
+          </div>
           <p><a href="https://www.google.com/maps/search/?api=1&amp;query=H%E1%BA%BBm+290+%C4%90%C6%B0%E1%BB%9Dng+D%C6%B0%C6%A1ng+B%C3%A1+Tr%E1%BA%A1c%2C+Ph%C6%B0%E1%BB%9Dng+Ch%C3%A1nh+H%C6%B0ng%2C+TP.HCM" target="_blank" rel="noopener">Mở trong Google Maps</a></p>
         </div>
       </div>
