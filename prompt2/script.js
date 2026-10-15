@@ -109,7 +109,7 @@
         showStatus('Cảm ơn bạn! Bạn & Tôi đã nhận được lời nhắn.', false);
       })
       .catch(function () {
-        showStatus('Gửi không thành công. Vui lòng thử lại sau hoặc gọi 0900 000 000.', true);
+        showStatus('Gửi không thành công. Vui lòng thử lại sau hoặc gọi 0986 187 111.', true);
       })
       .finally(function () {
         button.disabled = false;
