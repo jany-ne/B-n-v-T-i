@@ -44,7 +44,7 @@ html {
 
 body {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: Georgia, Cambria, "Times New Roman", "Noto Serif", "DejaVu Serif", "Liberation Serif", Times, serif;
   line-height: 1.6;
   color: var(--text);
   background: var(--bg);
