@@ -106,7 +106,7 @@
     request
       .then(function () {
         form.reset();
-        showStatus('Cảm ơn bạn! Bean & Bloom đã nhận được lời nhắn.', false);
+        showStatus('Cảm ơn bạn! Bạn & Tôi đã nhận được lời nhắn.', false);
       })
       .catch(function () {
         showStatus('Gửi không thành công. Vui lòng thử lại sau hoặc gọi 0900 000 000.', true);
