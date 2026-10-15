@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Quản lý đặt bàn - Bạn &amp; Tôi</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E☕%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="../prompt2/" class="logo">Bạn &amp; Tôi</a>
+      <button type="button" id="logout" class="admin-logout" hidden>Đăng xuất</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <h1>Quản lý đặt bàn</h1>
+
+        <form class="contact-form" id="login-form" novalidate>
+          <div class="field">
+            <label for="ad-email">Email</label>
+            <input id="ad-email" type="email" autocomplete="username" required>
+          </div>
+          <div class="field">
+            <label for="ad-password">Mật khẩu</label>
+            <input id="ad-password" type="password" autocomplete="current-password" required>
+          </div>
+          <button type="submit" class="btn">Đăng nhập</button>
+          <p class="form-status is-error" id="login-status" role="status" hidden></p>
+        </form>
+
+        <div id="panel" hidden>
+          <p class="form-status" id="panel-status" role="status"></p>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr><th>Ngày</th><th>Giờ</th><th>Họ tên</th><th>Điện thoại</th><th>Số người</th><th>Ghi chú</th><th><span class="visually-hidden">Thao tác</span></th></tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="admin.js" defer></script>
+</body>
+</html>
