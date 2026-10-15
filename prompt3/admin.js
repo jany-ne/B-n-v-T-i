@@ -1,7 +1,22 @@
 (function () {
   const URL = window.SUPABASE_URL;
   const KEY = window.SUPABASE_KEY;
-  let token = null; // chỉ giữ trong bộ nhớ, tải lại trang là phải đăng nhập lại
+  const STORE = 'booking-admin-session';
+  let token = null;
+
+  // Phiên đăng nhập lưu trong sessionStorage: tải lại trang vẫn còn, đóng tab là mất
+  function saveSession(t, expiresIn) {
+    try { sessionStorage.setItem(STORE, JSON.stringify({ t: t, exp: Date.now() + expiresIn * 1000 })); } catch (e) {}
+  }
+  function clearSession() {
+    try { sessionStorage.removeItem(STORE); } catch (e) {}
+  }
+  function readSession() {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(STORE));
+      return s && s.exp > Date.now() + 30000 ? s.t : null;
+    } catch (e) { return null; }
+  }
 
   const loginForm = document.getElementById('login-form');
   const loginStatus = document.getElementById('login-status');
@@ -33,12 +48,9 @@
         return res.json();
       })
       .then(function (data) {
-        token = data.access_token;
+        saveSession(data.access_token, data.expires_in || 3600);
         document.getElementById('ad-password').value = '';
-        loginForm.hidden = true;
-        panel.hidden = false;
-        logout.hidden = false;
-        load();
+        showPanel(data.access_token);
       })
       .catch(function () {
         loginStatus.textContent = 'Email hoặc mật khẩu không đúng.';
@@ -47,7 +59,29 @@
       .finally(function () { button.disabled = false; });
   });
 
+  function showPanel(t) {
+    token = t;
+    loginForm.hidden = true;
+    panel.hidden = false;
+    logout.hidden = false;
+    load();
+  }
+
+  function showLogin(message) {
+    token = null;
+    clearSession();
+    rows.replaceChildren();
+    panel.hidden = true;
+    logout.hidden = true;
+    loginForm.hidden = false;
+    if (message) {
+      loginStatus.textContent = message;
+      loginStatus.hidden = false;
+    }
+  }
+
   logout.addEventListener('click', function () {
+    clearSession();
     token = null;
     rows.replaceChildren();
     panel.hidden = true;
@@ -70,6 +104,7 @@
     panelStatus.textContent = 'Đang tải...';
     fetch(URL + '/rest/v1/bookings?select=*&order=booking_date.asc,booking_time.asc', { headers: headers() })
       .then(function (res) {
+        if (res.status === 401) { showLogin('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'); throw new Error('expired'); }
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
@@ -92,7 +127,8 @@
           rows.appendChild(tr);
         });
       })
-      .catch(function () {
+      .catch(function (err) {
+        if (err.message === 'expired') return;
         panelStatus.textContent = 'Không tải được danh sách. Hãy đăng nhập lại bằng đúng tài khoản quản lý.';
       });
   }
@@ -106,4 +142,7 @@
       })
       .catch(function () { panelStatus.textContent = 'Xóa không thành công.'; });
   }
+
+  const saved = readSession();
+  if (saved) showPanel(saved);
 })();
