@@ -369,3 +369,24 @@ button:focus-visible {
   z-index: 100;
 }
 .skip-link:focus { top: 8px; }
+
+.contact-links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 16px; }
+.contact-links a {
+  padding: 10px 20px;
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  color: var(--primary);
+  font-weight: bold;
+  text-decoration: none;
+}
+.contact-links a:hover { background: var(--primary); color: var(--surface); }
+@media (min-width: 1024px) { .contact-links { justify-content: flex-start; } }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
