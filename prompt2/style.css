@@ -259,8 +259,11 @@ button:focus-visible {
 .field-error { margin: 4px 0 0; font-size: 0.9rem; color: #c0392b; }
 .contact-form .btn { margin-top: 0; border: 0; font: inherit; font-weight: bold; cursor: pointer; }
 .form-status { margin: 12px 0 0; font-weight: bold; color: var(--primary); }
+.form-status.is-error { color: #c0392b; }
+.contact-form .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 @media (prefers-color-scheme: dark) {
+  .form-status.is-error { color: #ff7b6b; }
   .field [aria-invalid="true"] { border-color: #ff7b6b; }
   .field-error { color: #ff7b6b; }
 }

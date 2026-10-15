@@ -70,9 +70,45 @@
       invalid[0].focus();
       return;
     }
-    // Chưa có backend: chỉ giả lập gửi thành công
-    form.reset();
-    status.textContent = 'Cảm ơn bạn! Bean & Bloom đã nhận được lời nhắn.';
-    status.hidden = false;
+    send();
   });
+
+  function showStatus(text, isError) {
+    status.textContent = text;
+    status.classList.toggle('is-error', isError);
+    status.hidden = false;
+  }
+
+  function send() {
+    const endpoint = form.dataset.endpoint;
+    const button = form.querySelector('button[type="submit"]');
+    const label = button.textContent;
+
+    button.disabled = true;
+    button.textContent = 'Đang gửi...';
+
+    // Không có endpoint: giả lập gửi thành công
+    const request = endpoint
+      ? fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: new FormData(form)
+        }).then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+        })
+      : Promise.resolve();
+
+    request
+      .then(function () {
+        form.reset();
+        showStatus('Cảm ơn bạn! Bean & Bloom đã nhận được lời nhắn.', false);
+      })
+      .catch(function () {
+        showStatus('Gửi không thành công. Vui lòng thử lại sau hoặc gọi 0900 000 000.', true);
+      })
+      .finally(function () {
+        button.disabled = false;
+        button.textContent = label;
+      });
+  }
 })();
