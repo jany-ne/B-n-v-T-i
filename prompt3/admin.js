@@ -51,6 +51,7 @@
         saveSession(data.access_token, data.expires_in || 3600);
         document.getElementById('ad-password').value = '';
         showPanel(data.access_token);
+        if (window.refreshAuthLink) window.refreshAuthLink();
       })
       .catch(function () {
         loginStatus.textContent = 'Email hoặc mật khẩu không đúng.';
@@ -69,6 +70,7 @@
   function showLogin(message) {
     token = null;
     clearSession();
+    if (window.refreshAuthLink) window.refreshAuthLink();
     rows.replaceChildren();
     panel.hidden = true;
     loginForm.hidden = false;
@@ -80,6 +82,7 @@
 
   logout.addEventListener('click', function () {
     clearSession();
+    if (window.refreshAuthLink) window.refreshAuthLink();
     token = null;
     rows.replaceChildren();
     panel.hidden = true;
