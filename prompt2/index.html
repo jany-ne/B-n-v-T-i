@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>Bean &amp; Bloom - Quán Cà Phê</title>
+  <meta name="description" content="Bean &amp; Bloom - quán cà phê rang xay thủ công, không gian ấm cúng. Xem menu, đánh giá khách hàng và liên hệ đặt chỗ.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Bean &amp; Bloom - Quán Cà Phê">
+  <meta property="og:description" content="Cà phê rang xay thủ công, không gian ấm cúng giữa lòng thành phố.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E☕%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <a href="#main" class="skip-link">Bỏ qua đến nội dung chính</a>
   <header class="site-header">
     <div class="container header-inner">
       <a href="#" class="logo">Bean &amp; Bloom</a>
@@ -22,13 +28,14 @@
         <ul>
           <li><a href="#hero">Trang chủ</a></li>
           <li><a href="#menu">Menu</a></li>
+          <li><a href="#danh-gia">Đánh giá</a></li>
           <li><a href="#lien-he">Liên hệ</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <main>
+  <main id="main">
     <section id="hero" class="hero">
       <div class="container">
         <h1>Một tách cà phê, một ngày tươi mới</h1>
@@ -99,6 +106,11 @@
               <p class="field-error" id="cf-email-error" hidden></p>
             </div>
             <div class="field">
+              <label for="cf-phone">Số điện thoại</label>
+              <input id="cf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required>
+              <p class="field-error" id="cf-phone-error" hidden></p>
+            </div>
+            <div class="field">
               <label for="cf-message">Lời nhắn</label>
               <textarea id="cf-message" name="message" rows="4" required></textarea>
               <p class="field-error" id="cf-message-error" hidden></p>
@@ -115,6 +127,6 @@
     <div class="container">© 2026 Bean &amp; Bloom</div>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>

@@ -341,3 +341,15 @@ button:focus-visible {
   html { scroll-behavior: auto; }
   .nav-toggle-bar { transition: none; }
 }
+
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 6px;
+  z-index: 100;
+}
+.skip-link:focus { top: 8px; }
