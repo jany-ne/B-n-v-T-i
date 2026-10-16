@@ -1,6 +1,9 @@
 // Supabase Edge Function "book": kiểm tra Turnstile rồi mới lưu đơn đặt bàn.
 // Tạo trong Supabase: Edge Functions > Deploy a new function > Via Editor, đặt tên "book", dán file này.
-// Secret cần thêm (Edge Functions > Secrets): TURNSTILE_SECRET_KEY
+// Secret cần thêm (Edge Functions > Secrets):
+//   TURNSTILE_SECRET_KEY  - Secret Key của Cloudflare Turnstile
+//   RESEND_API_KEY        - API key của Resend (gửi email thông báo)
+//   NOTIFY_EMAIL          - email nhận thông báo (khi chưa có tên miền riêng, phải là email đăng ký Resend)
 // SUPABASE_URL và SUPABASE_SERVICE_ROLE_KEY được Supabase tự cấp, không cần thêm.
 
 const ALLOWED_ORIGIN = 'https://jany-ne.github.io';
@@ -10,6 +13,38 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+function esc(v: unknown) {
+  return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+}
+
+// Gửi email báo có đơn mới. Lỗi ở bước này không làm hỏng việc đặt bàn.
+async function notifyOwner(d: Record<string, unknown>) {
+  const apiKey = Deno.env.get('RESEND_API_KEY');
+  const to = Deno.env.get('NOTIFY_EMAIL');
+  if (!apiKey || !to) return;
+  const [y, m, day] = String(d.date).split('-');
+  const html = `<h2>Có đơn đặt bàn mới</h2>
+<p><b>Họ tên:</b> ${esc(d.name)}<br>
+<b>Điện thoại:</b> ${esc(d.phone)}<br>
+<b>Ngày giờ:</b> ${esc(day)}/${esc(m)}/${esc(y)} lúc ${esc(String(d.time).slice(0, 5))}<br>
+<b>Bàn:</b> ${esc(d.tableName)} (${esc(d.guests)} người)<br>
+<b>Ghi chú:</b> ${esc(d.note || '(không có)')}</p>`;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Ban va Toi <onboarding@resend.dev>',
+        to: [to],
+        subject: `Đặt bàn mới: ${String(d.name).slice(0, 50)} - ${day}/${m} ${String(d.time).slice(0, 5)}`,
+        html,
+      }),
+    });
+  } catch {
+    // bỏ qua
+  }
+}
 
 function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
@@ -67,7 +102,7 @@ Deno.serve(async (req) => {
   const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
 
   // 3. Bàn phải tồn tại và đủ chỗ
-  const t = await fetch(`${url}/rest/v1/restaurant_tables?id=eq.${encodeURIComponent(tableId)}&select=seats`, { headers });
+  const t = await fetch(`${url}/rest/v1/restaurant_tables?id=eq.${encodeURIComponent(tableId)}&select=seats,name`, { headers });
   const rows = await t.json();
   if (!Array.isArray(rows) || rows.length === 0 || guests > rows[0].seats) {
     return reply(400, { error: 'table' });
@@ -83,5 +118,6 @@ Deno.serve(async (req) => {
   });
   if (ins.status === 409) return reply(409, { error: 'conflict' });
   if (!ins.ok) return reply(400, { error: 'insert' });
+  await notifyOwner({ name, phone, date, time, guests, note, tableName: rows[0].name });
   return reply(200, { ok: true });
 });
