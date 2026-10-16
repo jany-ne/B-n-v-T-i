@@ -104,7 +104,7 @@
 
       const name = document.createElement('span');
       name.className = 'table-name';
-      name.textContent = t.name;
+      name.textContent = t.name + ':';
       const info = document.createElement('span');
       info.className = 'table-info';
       info.textContent = !ready ? t.seats + ' chỗ' : busy ? 'Đã có người đặt' : small ? 'Không đủ chỗ' : t.seats + ' chỗ';
