@@ -106,8 +106,9 @@
       name.className = 'table-name';
       name.textContent = t.name + ': ';
       const info = document.createElement('span');
-      info.className = 'table-info';
-      info.textContent = !ready ? t.seats + ' chỗ' : busy ? 'Đã có người đặt' : small ? 'Không đủ chỗ' : t.seats + ' chỗ';
+      const showSeats = !ready || (!busy && !small);
+      info.className = 'table-info' + (showSeats ? ' table-seats' : '');
+      info.textContent = showSeats ? t.seats + ' chỗ' : busy ? 'Đã có người đặt' : 'Không đủ chỗ';
 
       label.append(radio, name, info);
       tableBox.appendChild(label);
