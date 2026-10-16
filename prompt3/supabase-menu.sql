@@ -1,5 +1,5 @@
 -- Quản lý menu từ trang admin. Chạy trong Supabase: SQL Editor > New query > dán > Run.
--- Trước khi chạy, thay ADMIN_EMAIL (3 chỗ) bằng email tài khoản quản lý của bạn.
+-- Trước khi chạy, thay ADMIN_EMAIL (5 chỗ, dùng Tìm và Thay thế tất cả) bằng email tài khoản quản lý của bạn.
 -- Đừng commit bản đã điền email thật lên GitHub.
 
 create table if not exists public.menu_items (
