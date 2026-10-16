@@ -26,10 +26,10 @@ drop policy if exists "Quan ly xem don" on public.bookings;
 create policy "Quan ly xem don"
   on public.bookings for select
   to authenticated
-  using ((auth.jwt() ->> 'email') = 'jany@cybridge.jp');
+  using ((auth.jwt() ->> 'email') = 'ADMIN_EMAIL');
 
 drop policy if exists "Quan ly xoa don" on public.bookings;
 create policy "Quan ly xoa don"
   on public.bookings for delete
   to authenticated
-  using ((auth.jwt() ->> 'email') = 'jany@cybridge.jp');
+  using ((auth.jwt() ->> 'email') = 'ADMIN_EMAIL');
