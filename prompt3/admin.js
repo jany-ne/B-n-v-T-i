@@ -65,6 +65,7 @@
     loginForm.hidden = true;
     panel.hidden = false;
     load();
+    loadMenu();
   }
 
   function showLogin(message) {
@@ -72,6 +73,7 @@
     clearSession();
     if (window.refreshAuthLink) window.refreshAuthLink();
     rows.replaceChildren();
+    document.getElementById('menu-rows').replaceChildren();
     panel.hidden = true;
     loginForm.hidden = false;
     if (message) {
@@ -141,6 +143,140 @@
         load();
       })
       .catch(function () { panelStatus.textContent = 'Xóa không thành công.'; });
+  }
+
+
+  // ---------- Quản lý menu ----------
+  const menuForm = document.getElementById('menu-form');
+  const menuRows = document.getElementById('menu-rows');
+  const menuStatus = document.getElementById('mn-status');
+  const menuSubmit = document.getElementById('mn-submit');
+  const menuCancel = document.getElementById('mn-cancel');
+  const mn = {
+    id: document.getElementById('mn-id'),
+    name: document.getElementById('mn-name'),
+    desc: document.getElementById('mn-desc'),
+    price: document.getElementById('mn-price'),
+    image: document.getElementById('mn-image'),
+    alt: document.getElementById('mn-alt'),
+    sort: document.getElementById('mn-sort'),
+    available: document.getElementById('mn-available')
+  };
+  let menuItems = [];
+
+  function menuMessage(text, isError) {
+    menuStatus.textContent = text;
+    menuStatus.classList.toggle('is-error', Boolean(isError));
+    menuStatus.hidden = !text;
+  }
+
+  function resetMenuForm() {
+    menuForm.reset();
+    mn.id.value = '';
+    mn.sort.value = menuItems.length ? Math.max.apply(null, menuItems.map(function (m) { return m.sort; })) + 1 : 1;
+    menuSubmit.textContent = 'Thêm món';
+    menuCancel.hidden = true;
+  }
+
+  function loadMenu() {
+    fetch(URL + '/rest/v1/menu_items?select=*&order=sort.asc', { headers: headers() })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (list) {
+        menuItems = list;
+        menuRows.replaceChildren();
+        list.forEach(function (m) {
+          const tr = document.createElement('tr');
+          tr.append(cell(m.sort), cell(m.name), cell(Number(m.price).toLocaleString('vi-VN') + 'đ'), cell(m.available ? 'Đang bán' : 'Đã ẩn'));
+          const td = document.createElement('td');
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.className = 'admin-logout';
+          edit.textContent = 'Sửa';
+          edit.setAttribute('aria-label', 'Sửa món ' + m.name);
+          edit.addEventListener('click', function () { startEdit(m); });
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'admin-delete';
+          del.textContent = 'Xóa';
+          del.setAttribute('aria-label', 'Xóa món ' + m.name);
+          del.addEventListener('click', function () { removeMenu(m); });
+          td.append(edit, ' ', del);
+          tr.appendChild(td);
+          menuRows.appendChild(tr);
+        });
+        if (!mn.id.value) resetMenuForm();
+      })
+      .catch(function () { menuMessage('Không tải được menu. Bạn đã chạy supabase-menu.sql chưa?', true); });
+  }
+
+  function startEdit(m) {
+    mn.id.value = m.id;
+    mn.name.value = m.name;
+    mn.desc.value = m.description || '';
+    mn.price.value = m.price;
+    mn.image.value = m.image_url || '';
+    mn.alt.value = m.alt_text || '';
+    mn.sort.value = m.sort;
+    mn.available.checked = m.available;
+    menuSubmit.textContent = 'Lưu thay đổi';
+    menuCancel.hidden = false;
+    menuMessage('', false);
+    mn.name.focus();
+  }
+
+  menuCancel.addEventListener('click', function () {
+    resetMenuForm();
+    menuMessage('', false);
+  });
+
+  menuForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const name = mn.name.value.trim();
+    const price = Number(mn.price.value);
+    if (!name) { menuMessage('Vui lòng nhập tên món.', true); mn.name.focus(); return; }
+    if (mn.price.value === '' || !Number.isInteger(price) || price < 0) { menuMessage('Giá phải là số nguyên từ 0 trở lên.', true); mn.price.focus(); return; }
+
+    const body = {
+      name: name,
+      description: mn.desc.value.trim() || null,
+      price: price,
+      image_url: mn.image.value.trim() || null,
+      alt_text: mn.alt.value.trim() || null,
+      sort: Number(mn.sort.value) || 0,
+      available: mn.available.checked
+    };
+    const editing = mn.id.value;
+    const path = editing ? '/rest/v1/menu_items?id=eq.' + encodeURIComponent(editing) : '/rest/v1/menu_items';
+    menuSubmit.disabled = true;
+
+    fetch(URL + path, {
+      method: editing ? 'PATCH' : 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, headers()),
+      body: JSON.stringify(body)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        menuMessage(editing ? 'Đã lưu thay đổi.' : 'Đã thêm món.', false);
+        mn.id.value = '';
+        resetMenuForm();
+        loadMenu();
+      })
+      .catch(function () { menuMessage('Lưu không thành công. Hãy kiểm tra lại thông tin.', true); })
+      .finally(function () { menuSubmit.disabled = false; });
+  });
+
+  function removeMenu(m) {
+    if (!window.confirm('Xóa món "' + m.name + '" khỏi menu?')) return;
+    fetch(URL + '/rest/v1/menu_items?id=eq.' + encodeURIComponent(m.id), { method: 'DELETE', headers: headers() })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        menuMessage('Đã xóa món.', false);
+        loadMenu();
+      })
+      .catch(function () { menuMessage('Xóa không thành công.', true); });
   }
 
   const saved = readSession();
