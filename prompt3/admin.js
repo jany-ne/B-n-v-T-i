@@ -102,7 +102,7 @@
 
   function load() {
     panelStatus.textContent = 'Đang tải...';
-    fetch(URL + '/rest/v1/bookings?select=*&order=booking_date.asc,booking_time.asc', { headers: headers() })
+    fetch(URL + '/rest/v1/bookings?select=*,restaurant_tables(name)&order=booking_date.asc,booking_time.asc', { headers: headers() })
       .then(function (res) {
         if (res.status === 401) { showLogin('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.'); throw new Error('expired'); }
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -113,7 +113,7 @@
         panelStatus.textContent = list.length ? 'Có ' + list.length + ' đơn đặt bàn.' : 'Chưa có đơn đặt bàn nào.';
         list.forEach(function (b) {
           const tr = document.createElement('tr');
-          tr.append(cell(formatDate(b.booking_date)), cell(b.booking_time.slice(0, 5)), cell(b.name), cell(b.phone), cell(b.guests), cell(b.note));
+          tr.append(cell(formatDate(b.booking_date)), cell(b.booking_time.slice(0, 5)), cell(b.restaurant_tables ? b.restaurant_tables.name : ''), cell(b.name), cell(b.phone), cell(b.guests), cell(b.note));
 
           const td = document.createElement('td');
           const del = document.createElement('button');

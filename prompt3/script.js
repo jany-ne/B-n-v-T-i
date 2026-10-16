@@ -51,7 +51,118 @@
     return !msg;
   }
 
-  const fields = Array.from(form.querySelectorAll('input, select, textarea'));
+  const fields = Array.from(form.querySelectorAll('input:not([type="radio"]), select, textarea'));
+
+  // ---------- Chọn bàn ----------
+  const tableBox = document.getElementById('bk-tables');
+  const tableHint = document.getElementById('bk-table-hint');
+  const tableError = document.getElementById('bk-table-error');
+  const guestsInput = document.getElementById('bk-guests');
+  let tables = [];
+  let taken = new Set();
+  let requestId = 0;
+
+  function api(path, options) {
+    options = options || {};
+    options.headers = Object.assign({
+      'apikey': window.SUPABASE_KEY,
+      'Authorization': 'Bearer ' + window.SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }, options.headers);
+    return fetch(window.SUPABASE_URL + path, options);
+  }
+
+  function selectedTable() {
+    const r = tableBox.querySelector('input:checked');
+    return r ? r.value : '';
+  }
+
+  function renderTables() {
+    const keep = selectedTable();
+    const guests = Number(guestsInput.value) || 0;
+    const ready = dateInput.value && timeSelect.value;
+    tableBox.replaceChildren();
+
+    tables.forEach(function (t) {
+      const busy = taken.has(t.id);
+      const small = t.seats < guests;
+      const disabled = !ready || busy || small;
+
+      const label = document.createElement('label');
+      label.className = 'table-option' + (disabled ? ' is-disabled' : '');
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'table';
+      radio.value = t.id;
+      radio.disabled = disabled;
+      radio.checked = !disabled && t.id === keep;
+      radio.addEventListener('change', function () {
+        tableError.hidden = true;
+        tableError.textContent = '';
+      });
+
+      const name = document.createElement('span');
+      name.className = 'table-name';
+      name.textContent = t.name;
+      const info = document.createElement('span');
+      info.className = 'table-info';
+      info.textContent = !ready ? t.seats + ' chỗ' : busy ? 'Đã có người đặt' : small ? 'Không đủ chỗ' : t.seats + ' chỗ';
+
+      label.append(radio, name, info);
+      tableBox.appendChild(label);
+    });
+
+    if (!tables.length) tableHint.textContent = 'Đang tải danh sách bàn...';
+    else if (!ready) tableHint.textContent = 'Chọn ngày, giờ và số người để xem bàn trống.';
+    else tableHint.textContent = 'Mỗi lượt đặt giữ bàn trong 90 phút.';
+  }
+
+  function refreshAvailability() {
+    const date = dateInput.value;
+    const time = timeSelect.value;
+    const id = ++requestId;
+    if (!date || !time) {
+      taken = new Set();
+      renderTables();
+      return Promise.resolve();
+    }
+    return api('/rest/v1/rpc/get_taken_tables', {
+      method: 'POST',
+      body: JSON.stringify({ p_date: date, p_time: time })
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (list) {
+        if (id !== requestId) return;
+        taken = new Set(list.map(function (r) { return r.table_id; }));
+        renderTables();
+      })
+      .catch(function () {
+        if (id !== requestId) return;
+        tableHint.textContent = 'Không kiểm tra được bàn trống. Vui lòng tải lại trang.';
+      });
+  }
+
+  api('/rest/v1/restaurant_tables?select=id,name,seats&order=sort.asc')
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function (list) {
+      tables = list;
+      renderTables();
+    })
+    .catch(function () {
+      tableHint.textContent = 'Không tải được danh sách bàn. Vui lòng tải lại trang.';
+    });
+
+  dateInput.addEventListener('change', refreshAvailability);
+  timeSelect.addEventListener('change', refreshAvailability);
+  guestsInput.addEventListener('input', renderTables);
+  renderTables();
 
   fields.forEach(function (f) {
     f.addEventListener('blur', function () { validate(f); });
@@ -70,8 +181,18 @@
     e.preventDefault();
     status.hidden = true;
     const invalid = fields.filter(function (f) { return !validate(f); });
+    const noTable = !selectedTable();
+    if (noTable) {
+      tableError.textContent = 'Vui lòng chọn bàn.';
+      tableError.hidden = false;
+    }
     if (invalid.length) {
       invalid[0].focus();
+      return;
+    }
+    if (noTable) {
+      const first = tableBox.querySelector('input:not(:disabled)');
+      if (first) first.focus();
       return;
     }
     send();
@@ -87,26 +208,29 @@
       booking_date: data.get('date'),
       booking_time: data.get('time'),
       guests: Number(data.get('guests')),
+      table_id: selectedTable(),
       note: data.get('note').trim() || null
     };
 
     button.disabled = true;
     button.textContent = 'Đang gửi...';
 
-    fetch(window.SUPABASE_URL + '/rest/v1/bookings', {
+    api('/rest/v1/bookings', {
       method: 'POST',
-      headers: {
-        'apikey': window.SUPABASE_KEY,
-        'Authorization': 'Bearer ' + window.SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
+      headers: { 'Prefer': 'return=minimal' },
       body: JSON.stringify(body)
     })
       .then(function (res) {
+        if (res.status === 409) {
+          refreshAvailability();
+          showStatus('Bàn này vừa được người khác đặt. Vui lòng chọn bàn khác.', true);
+          return;
+        }
         if (!res.ok) throw new Error('HTTP ' + res.status);
         form.reset();
-        document.getElementById('bk-guests').value = 2;
+        guestsInput.value = 2;
+        taken = new Set();
+        renderTables();
         showStatus('Cảm ơn bạn! Quán đã nhận đơn đặt bàn và sẽ liên hệ xác nhận qua số ' + body.phone + '.', false);
       })
       .catch(function () {
