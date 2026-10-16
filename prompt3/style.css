@@ -417,3 +417,6 @@ button:focus-visible {
 .table-name { font-weight: bold; }
 .table-info { font-size: 0.85rem; color: var(--text-muted); }
 .table-hint { margin: 8px 0 0; font-size: 0.9rem; color: var(--text-muted); }
+
+.table-info.table-seats { color: #b45309; font-weight: bold; }
+@media (prefers-color-scheme: dark) { .table-info.table-seats { color: #ffa94d; } }
