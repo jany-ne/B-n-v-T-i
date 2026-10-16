@@ -113,7 +113,7 @@
         panelStatus.textContent = list.length ? 'Có ' + list.length + ' đơn đặt bàn.' : 'Chưa có đơn đặt bàn nào.';
         list.forEach(function (b) {
           const tr = document.createElement('tr');
-          tr.append(cell(formatDate(b.booking_date)), cell(b.booking_time.slice(0, 5)), cell(b.restaurant_tables ? b.restaurant_tables.name : ''), cell(b.name), cell(b.phone), cell(b.guests), cell(b.note));
+          tr.append(cell(formatDate(b.booking_date)), cell(b.booking_time.slice(0, 5)), cell(b.restaurant_tables ? b.restaurant_tables.name + ':' : ''), cell(b.name), cell(b.phone), cell(b.guests), cell(b.note));
 
           const td = document.createElement('td');
           const del = document.createElement('button');
