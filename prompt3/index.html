@@ -79,6 +79,10 @@
             <textarea id="bk-note" name="note" rows="3" maxlength="500"></textarea>
             <p class="field-error" id="bk-note-error" hidden></p>
           </div>
+          <div class="field captcha">
+            <div id="bk-captcha"></div>
+            <p class="field-error" id="bk-captcha-error" hidden></p>
+          </div>
           <button type="submit" class="btn">Đặt bàn</button>
           <p class="form-status" id="bk-status" role="status" hidden></p>
         </form>
@@ -91,6 +95,7 @@
   </footer>
 
   <script src="config.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script src="nav.js" defer></script>
   <script src="auth-link.js" defer></script>
   <script src="script.js" defer></script>

@@ -53,6 +53,33 @@
 
   const fields = Array.from(form.querySelectorAll('input:not([type="radio"]), select, textarea'));
 
+  // ---------- Captcha (Cloudflare Turnstile) ----------
+  const captchaError = document.getElementById('bk-captcha-error');
+  let widgetId = null;
+  let captchaToken = '';
+
+  function showCaptcha(msg) {
+    captchaError.textContent = msg;
+    captchaError.hidden = !msg;
+  }
+
+  function resetCaptcha() {
+    captchaToken = '';
+    if (window.turnstile && widgetId !== null) window.turnstile.reset(widgetId);
+  }
+
+  function renderCaptcha() {
+    if (!window.turnstile) { window.setTimeout(renderCaptcha, 200); return; }
+    widgetId = window.turnstile.render('#bk-captcha', {
+      sitekey: window.TURNSTILE_SITE_KEY,
+      language: 'vi',
+      callback: function (t) { captchaToken = t; showCaptcha(''); },
+      'expired-callback': function () { captchaToken = ''; },
+      'error-callback': function () { captchaToken = ''; showCaptcha('Không tải được xác minh. Vui lòng tải lại trang.'); }
+    });
+  }
+  renderCaptcha();
+
   // ---------- Chọn bàn ----------
   const tableBox = document.getElementById('bk-tables');
   const tableHint = document.getElementById('bk-table-hint');
@@ -187,6 +214,7 @@
       tableError.textContent = 'Vui lòng chọn bàn.';
       tableError.hidden = false;
     }
+    if (!captchaToken) showCaptcha('Vui lòng xác minh bạn không phải robot.');
     if (invalid.length) {
       invalid[0].focus();
       return;
@@ -196,6 +224,7 @@
       if (first) first.focus();
       return;
     }
+    if (!captchaToken) return;
     send();
   });
 
@@ -216,16 +245,21 @@
     button.disabled = true;
     button.textContent = 'Đang gửi...';
 
-    api('/rest/v1/bookings', {
+    api('/functions/v1/book', {
       method: 'POST',
-      headers: { 'Prefer': 'return=minimal' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ token: captchaToken, booking: body })
     })
       .then(function (res) {
         if (res.status === 409) {
           refreshAvailability();
           showStatus('Bàn này vừa được người khác đặt. Vui lòng chọn bàn khác.', true);
           return;
+        }
+        if (res.status === 400) {
+          return res.json().catch(function () { return {}; }).then(function (r) {
+            if (r.error === 'captcha') showStatus('Xác minh không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.', true);
+            else showStatus('Thông tin đặt bàn chưa hợp lệ. Vui lòng kiểm tra lại.', true);
+          });
         }
         if (!res.ok) throw new Error('HTTP ' + res.status);
         form.reset();
@@ -238,6 +272,7 @@
         showStatus('Đặt bàn không thành công. Vui lòng thử lại hoặc gọi 0986 187 111.', true);
       })
       .finally(function () {
+        resetCaptcha();
         button.disabled = false;
         button.textContent = label;
       });
