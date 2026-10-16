@@ -117,3 +117,51 @@
       });
   }
 })();
+
+(function () {
+  // Menu đọc từ Supabase. Nếu lỗi, giữ nguyên menu có sẵn trong HTML.
+  const grid = document.querySelector('.menu-grid');
+  if (!grid || !window.SUPABASE_URL) return;
+
+  fetch(window.SUPABASE_URL + '/rest/v1/menu_items?select=*&available=eq.true&order=sort.asc', {
+    headers: { 'apikey': window.SUPABASE_KEY, 'Authorization': 'Bearer ' + window.SUPABASE_KEY }
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function (items) {
+      if (!items.length) return;
+      grid.replaceChildren();
+      items.forEach(function (it) {
+        const card = document.createElement('article');
+        card.className = 'card';
+        if (it.image_url) {
+          const img = document.createElement('img');
+          img.src = it.image_url;
+          img.alt = it.alt_text || it.name;
+          img.width = 600;
+          img.height = 750;
+          img.loading = 'lazy';
+          card.appendChild(img);
+        }
+        const body = document.createElement('div');
+        body.className = 'card-body';
+        const h3 = document.createElement('h3');
+        h3.textContent = it.name;
+        body.appendChild(h3);
+        if (it.description) {
+          const p = document.createElement('p');
+          p.textContent = it.description;
+          body.appendChild(p);
+        }
+        const price = document.createElement('span');
+        price.className = 'price';
+        price.textContent = Number(it.price).toLocaleString('vi-VN') + 'đ';
+        body.appendChild(price);
+        card.appendChild(body);
+        grid.appendChild(card);
+      });
+    })
+    .catch(function () {});
+})();

@@ -62,6 +62,27 @@
               <tbody id="rows"></tbody>
             </table>
           </div>
+
+          <h2 class="admin-h2">Quản lý menu</h2>
+          <form class="contact-form menu-form" id="menu-form" novalidate>
+            <input type="hidden" id="mn-id">
+            <div class="field"><label for="mn-name">Tên món</label><input id="mn-name" type="text" maxlength="100" required></div>
+            <div class="field"><label for="mn-desc">Mô tả</label><input id="mn-desc" type="text" maxlength="300"></div>
+            <div class="field"><label for="mn-price">Giá (đồng)</label><input id="mn-price" type="number" min="0" step="1000" inputmode="numeric" required></div>
+            <div class="field"><label for="mn-image">Đường dẫn ảnh</label><input id="mn-image" type="text" maxlength="500" placeholder="images/ten-anh.jpg hoặc https://..."></div>
+            <div class="field"><label for="mn-alt">Mô tả ảnh (cho người khiếm thị)</label><input id="mn-alt" type="text" maxlength="200"></div>
+            <div class="field"><label for="mn-sort">Thứ tự hiển thị</label><input id="mn-sort" type="number" min="0" inputmode="numeric" value="0"></div>
+            <div class="field"><label><input id="mn-available" type="checkbox" checked> Đang bán (hiện trên trang)</label></div>
+            <button type="submit" class="btn" id="mn-submit">Thêm món</button>
+            <button type="button" class="admin-logout" id="mn-cancel" hidden>Hủy sửa</button>
+            <p class="form-status" id="mn-status" role="status" hidden></p>
+          </form>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead><tr><th>Thứ tự</th><th>Tên món</th><th>Giá</th><th>Trạng thái</th><th><span class="visually-hidden">Thao tác</span></th></tr></thead>
+              <tbody id="menu-rows"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>

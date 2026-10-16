@@ -420,3 +420,8 @@ button:focus-visible {
 
 .table-info.table-seats { color: #b45309; font-weight: bold; }
 @media (prefers-color-scheme: dark) { .table-info.table-seats { color: #ffa94d; } }
+
+.admin-h2 { margin: 40px 0 16px; text-align: center; }
+.menu-form { max-width: 520px; margin-bottom: 24px; }
+.field label:has(input[type="checkbox"]) { display: flex; gap: 8px; align-items: center; }
+.field input[type="checkbox"] { width: auto; }
