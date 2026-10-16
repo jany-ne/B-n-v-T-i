@@ -414,6 +414,6 @@ button:focus-visible {
 .table-option:has(input:checked) { border-color: var(--primary); background: var(--bg-alt); box-shadow: 0 0 0 2px var(--primary); }
 .table-option:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
 .table-option.is-disabled { cursor: not-allowed; opacity: 0.5; border-style: dashed; }
-.table-name { font-weight: bold; margin-right: 4px; }
+.table-name { font-weight: bold; }
 .table-info { font-size: 0.85rem; color: var(--text-muted); }
 .table-hint { margin: 8px 0 0; font-size: 0.9rem; color: var(--text-muted); }
