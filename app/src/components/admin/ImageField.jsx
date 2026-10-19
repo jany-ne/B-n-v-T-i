@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { publicImageUrl } from '../../lib/supabase.js';
 import ImageCropper from './ImageCropper.jsx';
+import { asset } from '../../lib/asset.js';
 
 export default function ImageField({ value, onChange, onBusyChange }) {
   const { request } = useAuth();
@@ -58,7 +59,7 @@ export default function ImageField({ value, onChange, onBusyChange }) {
 
       {value && !cropping && (
         <div className="mt-2">
-          <img src={value} alt="Ảnh món đã chọn" className="block max-w-40 rounded-lg shadow" />
+          <img src={asset(value)} alt="Ảnh món đã chọn" className="block max-w-40 rounded-lg shadow" />
           <div className="mt-2 flex flex-wrap gap-2">
             {lastBitmap.current && (
               <button type="button" onClick={() => setCropping(lastBitmap.current)} className="rounded-md border border-primary px-3 py-1.5 text-primary">Chỉnh vị trí cắt</button>

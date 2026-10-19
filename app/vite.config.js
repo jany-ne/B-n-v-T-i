@@ -2,8 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-// base './' để khi triển khai lên GitHub Pages (trong thư mục con) đường dẫn ảnh, file vẫn đúng.
+// Khi chạy trên máy (npm run dev) trang nằm ở gốc "/". Khi đưa lên GitHub Pages, trang nằm trong thư mục
+// con của tên repo, nên lúc build ta truyền VITE_BASE=/B-n-v-T-i/ (xem .github/workflows/test.yml).
 export default defineConfig({
-  base: './',
+  base: process.env.VITE_BASE || '/',
   plugins: [react(), tailwindcss()],
 });

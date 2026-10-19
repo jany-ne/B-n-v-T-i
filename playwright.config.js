@@ -8,7 +8,7 @@ module.exports = defineConfig({
   webServer: [
     // Trang HTML thường (prompt1, prompt2, prompt3)
     { command: 'python3 -m http.server 8080', url: 'http://localhost:8080/', reuseExistingServer: true, stdout: 'ignore' },
-    // Bản React đã build (app/dist). Cần chạy "npm run build" trong app/ trước.
-    { command: 'python3 -m http.server 8081 --directory app/dist', url: 'http://localhost:8081/', reuseExistingServer: true, stdout: 'ignore' },
+    // Bản React đã build (app/dist), chạy bằng vite preview để địa chỉ sạch như /dat-ban mở thẳng được. Cần build trước.
+    { command: 'npm --prefix app run preview -- --port 8081 --strictPort', url: 'http://localhost:8081/', reuseExistingServer: true, stdout: 'ignore' },
   ],
 });

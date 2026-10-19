@@ -181,8 +181,8 @@ test('chân trang có liên kết nhanh, gọi điện, Zalo, Facebook', async (
 
   const quick = footer.getByRole('navigation', { name: 'Liên kết nhanh' });
   await expect(quick.getByRole('link')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ']);
-  await expect(quick.getByRole('link', { name: 'Menu' })).toHaveAttribute('href', '#/');
-  await expect(quick.getByRole('link', { name: 'Đặt bàn' })).toHaveAttribute('href', '#/dat-ban');
+  await expect(quick.getByRole('link', { name: 'Menu' })).toHaveAttribute('href', '/');
+  await expect(quick.getByRole('link', { name: 'Đặt bàn' })).toHaveAttribute('href', '/dat-ban');
 
   await expect(footer.getByRole('link', { name: /Gọi 0986 187 111/ })).toHaveAttribute('href', 'tel:0986187111');
   const zalo = footer.getByRole('link', { name: /Zalo/ });

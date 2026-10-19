@@ -42,7 +42,7 @@ async function setup(page, { loginOk = true, bookingsStatus = 200, storageStatus
 }
 
 async function login(page) {
-  await page.goto(APP + '#/quan-ly');
+  await page.goto(APP + 'quan-ly');
   await page.fill('#ad-email', 'chu@quan.test');
   await page.fill('#ad-password', 'mat-khau');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
@@ -68,7 +68,7 @@ test.describe('đăng nhập', () => {
 
   test('sai mật khẩu thì báo lỗi và không hiện danh sách', async ({ page }) => {
     await setup(page, { loginOk: false });
-    await page.goto(APP + '#/quan-ly');
+    await page.goto(APP + 'quan-ly');
     await page.fill('#ad-email', 'chu@quan.test');
     await page.fill('#ad-password', 'sai');
     await page.getByRole('button', { name: 'Đăng nhập' }).click();
@@ -95,7 +95,7 @@ test.describe('đăng nhập', () => {
   test('phiên hết hạn (401) thì quay về đăng nhập kèm thông báo', async ({ page }) => {
     await setup(page, { bookingsStatus: 401 });
     await page.addInitScript(() => sessionStorage.setItem('booking-admin-session', JSON.stringify({ t: 'cu', exp: Date.now() + 3600000 })));
-    await page.goto(APP + '#/quan-ly');
+    await page.goto(APP + 'quan-ly');
     await expect(page.getByText('hết hạn')).toBeVisible();
     await expect(page.locator('#ad-email')).toBeVisible();
   });

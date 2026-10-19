@@ -65,10 +65,11 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
+      # VITE_BASE: trang nằm trong thư mục con của tên repo trên GitHub Pages
       - name: Build bản React
         run: |
           npm ci --prefix app
-          npm --prefix app run build
+          VITE_BASE=/B-n-v-T-i/ npm --prefix app run build
 
       - name: Ghép trang web (bản React ở gốc, trang cũ giữ nguyên)
         run: bash scripts/build-site.sh

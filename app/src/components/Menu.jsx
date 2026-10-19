@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { asset } from '../lib/asset.js';
 
 // Menu dự phòng, dùng khi chưa tải được dữ liệu từ Supabase.
 const FALLBACK = [
@@ -37,7 +38,7 @@ export default function Menu() {
             <article key={it.id} className="overflow-hidden rounded-lg bg-surface shadow">
               {it.image_url && (
                 <img
-                  src={it.image_url}
+                  src={asset(it.image_url)}
                   alt={it.alt_text || it.name}
                   width="600"
                   height="750"

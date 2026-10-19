@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
+import { asset } from '../lib/asset.js';
 
 export default function Hero() {
   return (
     <section
       id="hero"
       className="bg-cover bg-center px-4 py-16 text-center text-white lg:py-28"
-      style={{ backgroundImage: 'linear-gradient(rgb(40 28 20 / 0.65), rgb(40 28 20 / 0.65)), url(images/hero.jpg)' }}
+      style={{ backgroundImage: 'linear-gradient(rgb(40 28 20 / 0.65), rgb(40 28 20 / 0.65)), url(' + asset('images/hero.jpg') + ')' }}
     >
       <h1 className="mx-auto mb-3 max-w-2xl text-3xl font-bold leading-tight lg:text-5xl">
         Một tách cà phê, một ngày tươi mới, nơi kết nối những tâm hồn yêu cà phê.

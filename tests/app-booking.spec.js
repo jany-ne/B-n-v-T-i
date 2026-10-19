@@ -15,7 +15,7 @@ async function openBooking(page, bookFn) {
   await mockSupabase(page, '/rest/v1/restaurant_tables*', () => ({ status: 200, body: TABLES }));
   await mockSupabase(page, '/rest/v1/rpc/get_taken_tables', () => ({ status: 200, body: [{ table_id: 'B1' }] }));
   await mockSupabase(page, '/functions/v1/book', bookFn || (() => ({ status: 200, body: { ok: true } })));
-  await page.goto(APP + '#/dat-ban');
+  await page.goto(APP + 'dat-ban');
   await expect(page.locator('fieldset label')).toHaveCount(3);
 }
 
@@ -34,14 +34,14 @@ test.describe('chuyển trang', () => {
     await mockSupabase(page, '/rest/v1/restaurant_tables*', () => ({ status: 200, body: TABLES }));
     await page.goto(APP);
     await page.getByRole('link', { name: 'Đặt bàn ngay' }).click();
-    await expect(page).toHaveURL(/#\/dat-ban$/);
+    await expect(page).toHaveURL(/\/dat-ban$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Đặt bàn' })).toBeVisible();
   });
 
   test('từ trang đặt bàn bấm Menu thì về trang chủ và cuộn tới phần menu', async ({ page }) => {
     await openBooking(page);
     await page.getByRole('contentinfo').getByRole('link', { name: 'Menu' }).click();
-    await expect(page).toHaveURL(/#\/$/);
+    await expect(page).toHaveURL(APP);
     await expect(page.locator('#menu')).toBeInViewport();
   });
 
@@ -51,6 +51,25 @@ test.describe('chuyển trang', () => {
     await page.locator('#lien-he').scrollIntoViewIfNeeded();
     await page.getByRole('contentinfo').getByRole('link', { name: 'Đặt bàn' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Đặt bàn' })).toBeInViewport();
+  });
+
+  test('địa chỉ cũ dạng #/dat-ban tự chuyển sang địa chỉ sạch', async ({ page }) => {
+    await mockSupabase(page, '/rest/v1/restaurant_tables*', () => ({ status: 200, body: TABLES }));
+    await page.goto(APP + '#/dat-ban');
+    await expect(page).toHaveURL(APP + 'dat-ban');
+    await expect(page.getByRole('heading', { level: 1, name: 'Đặt bàn' })).toBeVisible();
+  });
+
+  test('tải lại trang đặt bàn vẫn ở đúng trang, địa chỉ không có dấu #', async ({ page }) => {
+    await openBooking(page);
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1, name: 'Đặt bàn' })).toBeVisible();
+    expect(page.url()).not.toContain('#');
+  });
+
+  test('địa chỉ lạ thì hiện trang chủ', async ({ page }) => {
+    await page.goto(APP + 'khong-ton-tai');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Một tách cà phê');
   });
 
   test('mở thẳng địa chỉ trang đặt bàn vẫn hiện đúng trang', async ({ page }) => {
