@@ -19,6 +19,7 @@
   "homepage": "https://github.com/jany-ne/B-n-v-T-i#readme",
   "private": "true",
   "devDependencies": {
-    "@playwright/test": "1.64.1"
+    "@playwright/test": "1.64.1",
+    "esbuild": "0.28.2"
   }
 }

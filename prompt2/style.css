@@ -395,3 +395,22 @@ button:focus-visible {
 .hero-actions .btn { margin-top: 0; }
 .btn-outline { background: transparent; color: #fff; border: 2px solid #fff; }
 .btn-outline:hover { background: #fff; color: #3b2a20; filter: none; }
+
+/* ---------- Chatbot ---------- */
+.chat-toggle { position: fixed; right: 16px; bottom: 16px; z-index: 50; padding: 12px 20px; border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: bold; cursor: pointer; box-shadow: var(--shadow); }
+.chat-panel { position: fixed; right: 16px; bottom: 72px; z-index: 50; display: flex; flex-direction: column; width: min(360px, calc(100vw - 32px)); height: min(480px, calc(100vh - 100px)); background: var(--surface); color: var(--text); border-radius: 12px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); overflow: hidden; }
+.chat-panel[hidden] { display: none; }
+.chat-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--header-bg); color: var(--header-text); }
+.chat-close { border: 0; background: transparent; color: inherit; font: inherit; font-size: 1.1rem; cursor: pointer; }
+.chat-log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-bot { align-self: flex-start; background: var(--bg-alt); }
+.chat-user { align-self: flex-end; background: var(--accent); color: var(--on-accent); }
+.chat-typing { opacity: 0.6; }
+.chat-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.chat-chip { padding: 4px 10px; border: 1px solid var(--primary); border-radius: 999px; background: transparent; color: var(--primary); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--bg-alt); }
+.chat-form input { flex: 1; min-width: 0; padding: 8px 10px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--text-muted); border-radius: 6px; }
+.chat-send { padding: 8px 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--surface); font: inherit; font-weight: bold; cursor: pointer; }
+.chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.chat-toggle:focus-visible, .chat-close:focus-visible, .chat-chip:focus-visible, .chat-send:focus-visible, .chat-form input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
