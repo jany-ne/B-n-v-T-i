@@ -1,0 +1,37 @@
+# Chạy toàn bộ bài test mỗi khi có code mới được push lên main hoặc có pull request.
+name: Kiểm thử
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Cài các gói
+        run: npm ci
+
+      - name: Cài trình duyệt cho Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Chạy test
+        run: npm test
+
+      # Nếu test đỏ, lưu lại báo cáo để xem chi tiết trên GitHub
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: bao-cao-test
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
