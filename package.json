@@ -1,0 +1,24 @@
+{
+  "name": "ban-va-toi",
+  "version": "1.0.0",
+  "description": "Kiem thu tu dong cho trang Ban va Toi",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jany-ne/B-n-v-T-i.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jany-ne/B-n-v-T-i/issues"
+  },
+  "homepage": "https://github.com/jany-ne/B-n-v-T-i#readme",
+  "private": "true",
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
