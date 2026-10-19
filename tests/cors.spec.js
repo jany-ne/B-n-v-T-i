@@ -13,7 +13,7 @@ function load(name) {
   return handler;
 }
 
-for (const name of ['book', 'contact', 'chat']) {
+for (const name of ['book', 'contact', 'chat', 'order']) {
   const preflight = (origin) => load(name)(new Request(`https://x.test/functions/v1/${name}`, {
     method: 'OPTIONS', headers: origin ? { Origin: origin } : {},
   }));

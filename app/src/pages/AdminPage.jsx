@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import BookingsAdmin from '../components/admin/BookingsAdmin.jsx';
+import OrdersAdmin from '../components/admin/OrdersAdmin.jsx';
 import MenuAdmin from '../components/admin/MenuAdmin.jsx';
 
 function LoginForm() {
@@ -49,11 +50,12 @@ export default function AdminPage() {
   return (
     <section className="py-12 md:py-16">
       <div className="page-container">
-        <h1 className="mb-7 text-center text-3xl font-bold">Quản lý đặt bàn</h1>
+        <h1 className="mb-7 text-center text-3xl font-bold">Quản lý</h1>
         {token ? (
           <>
             <button type="button" onClick={logout} className="mb-4 rounded-md border border-primary px-4 py-2 text-primary">Đăng xuất</button>
             <BookingsAdmin />
+            <OrdersAdmin />
             <MenuAdmin />
           </>
         ) : (

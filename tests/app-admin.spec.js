@@ -7,6 +7,9 @@ const BOOKINGS = [
   { id: 'b-1', booking_date: '2031-01-01', booking_time: '19:00:00', name: 'Khách Một', phone: '0986187111', guests: 2, note: 'Gần cửa sổ', restaurant_tables: { name: 'Bàn 2' } },
   { id: 'b-2', booking_date: '2031-01-02', booking_time: '12:30:00', name: 'Khách Hai', phone: '0900000000', guests: 4, note: null, restaurant_tables: { name: 'Bàn 5' } },
 ];
+const ORDERS = [
+  { id: 'o-1', created_at: '2031-01-15T10:30:00.000Z', name: 'Khách Món', phone: '0986187111', item_name: 'Latte', unit_price: 50000, quantity: 2, note: 'Ít đá' },
+];
 const MENU = [
   { id: 'm-1', name: 'Cà phê sữa', description: 'Đậm đà', price: 35000, image_url: 'images/ca-phe-sua.jpg', alt_text: 'Ly cà phê', sort: 1, available: true },
   { id: 'm-2', name: 'Trà đào', description: null, price: 40000, image_url: null, alt_text: null, sort: 2, available: false },
@@ -20,7 +23,7 @@ test.beforeEach(async ({ page }) => {
 
 // Dựng các địa chỉ Supabase giả và ghi lại các yêu cầu để test kiểm tra.
 async function setup(page, { loginOk = true, bookingsStatus = 200, storageStatus = 200 } = {}) {
-  const seen = { login: [], bookings: [], menu: [], upload: [] };
+  const seen = { login: [], bookings: [], orders: [], menu: [], upload: [] };
   await mockSupabase(page, '/auth/v1/token*', (r) => {
     seen.login.push(r.postDataJSON());
     return loginOk ? { status: 200, body: { access_token: 'tok-1', expires_in: 3600 } } : { status: 400, body: { error: 'invalid' } };
@@ -28,6 +31,11 @@ async function setup(page, { loginOk = true, bookingsStatus = 200, storageStatus
   await mockSupabase(page, '/rest/v1/bookings*', (r) => {
     seen.bookings.push({ method: r.method(), url: r.url(), auth: r.headers().authorization });
     if (r.method() === 'GET') return { status: bookingsStatus, body: bookingsStatus === 200 ? BOOKINGS : {} };
+    return { status: 200, body: [] };
+  });
+  await mockSupabase(page, '/rest/v1/orders*', (r) => {
+    seen.orders.push({ method: r.method(), url: r.url() });
+    if (r.method() === 'GET') return { status: 200, body: ORDERS };
     return { status: 200, body: [] };
   });
   await mockSupabase(page, '/rest/v1/menu_items*', (r) => {
@@ -50,6 +58,7 @@ async function login(page) {
 }
 
 const bookingRow = (page, text) => page.locator('section[aria-labelledby="bookings-title"] tbody tr', { hasText: text });
+const orderRow = (page, text) => page.locator('section[aria-labelledby="orders-title"] tbody tr', { hasText: text });
 const menuRow = (page, text) => page.locator('section[aria-labelledby="menu-admin-title"] tbody tr', { hasText: text });
 
 test.describe('đăng nhập', () => {
@@ -58,6 +67,9 @@ test.describe('đăng nhập', () => {
     await login(page);
     expect(seen.login[0]).toEqual({ email: 'chu@quan.test', password: 'mat-khau' });
     await expect(page.locator('section[aria-labelledby="bookings-title"] tbody tr')).toHaveCount(2);
+    await expect(page.locator('section[aria-labelledby="orders-title"] tbody tr')).toHaveCount(1);
+    await expect(orderRow(page, 'Khách Món')).toContainText('Latte');
+    await expect(orderRow(page, 'Khách Món')).toContainText('100.000đ');
     await expect(bookingRow(page, 'Khách Một')).toContainText('01/01/2031');
     await expect(bookingRow(page, 'Khách Một')).toContainText('19:00');
     await expect(bookingRow(page, 'Khách Một')).toContainText('Bàn 2:');
@@ -140,6 +152,15 @@ test.describe('đơn đặt bàn', () => {
     await login(page);
     await expect(page.locator('section[aria-labelledby="bookings-title"] tbody tr').first()).toContainText('<img src=x');
     expect(await page.evaluate(() => window.hacked)).toBeUndefined();
+  });
+});
+
+test.describe('đơn món', () => {
+  test('xóa một đơn món gọi đúng yêu cầu DELETE', async ({ page }) => {
+    const seen = await setup(page);
+    await login(page);
+    await orderRow(page, 'Khách Món').getByRole('button', { name: /Xóa/ }).click();
+    await expect.poll(() => seen.orders.some((b) => b.method === 'DELETE' && b.url.includes('id=eq.o-1'))).toBe(true);
   });
 });
 

@@ -20,6 +20,8 @@ test('trang hiện đủ các phần và menu đọc từ cơ sở dữ liệu',
   await expect(page.locator('#menu article')).toHaveCount(2);
   await expect(page.locator('#menu article').first()).toContainText('45.000đ');
   await expect(page.locator('#menu article').nth(1)).toContainText('1.250.000đ');
+  await expect(page.getByRole('link', { name: 'Mua ngay Món thử A' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mua ngay Món thử B' })).toBeVisible();
   await expect(page.locator('#danh-gia figure')).toHaveCount(3);
   await expect(page.locator('#danh-gia [role="img"]').last()).toHaveAttribute('aria-label', '4 trên 5 sao');
   await expect(page.locator('#lien-he')).toContainText('Dương Bá Trạc');
