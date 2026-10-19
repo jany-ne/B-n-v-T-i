@@ -54,6 +54,14 @@
   }
 }
 
+/* Tailwind bản mới để con trỏ của nút là mũi tên thường. Trả lại bàn tay cho mọi nút đang bấm được. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 64px;
