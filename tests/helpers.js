@@ -28,9 +28,12 @@ async function mockSupabase(page, pattern, reply) {
 async function mockTurnstile(page) {
   await page.route('https://challenges.cloudflare.com/**', (route) => route.abort());
   await page.addInitScript(() => {
+    let options;
+    const issue = () => setTimeout(() => options.callback('token-gia'), 0);
     window.turnstile = {
-      render: (selector, options) => { setTimeout(() => options.callback('token-gia'), 0); return 'widget-1'; },
-      reset: () => {},
+      render: (selector, opts) => { options = opts; issue(); return 'widget-1'; },
+      reset: () => issue(), // Turnstile thật cấp token mới sau khi reset
+      remove: () => {},
     };
   });
 }

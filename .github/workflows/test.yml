@@ -20,10 +20,13 @@ jobs:
       - name: Cài các gói
         run: npm ci
 
+      - name: Cài các gói của bản React
+        run: npm ci --prefix app
+
       - name: Cài trình duyệt cho Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: Chạy test
+      - name: Build bản React và chạy test
         run: npm test
 
       # Nếu test đỏ, lưu lại báo cáo để xem chi tiết trên GitHub
