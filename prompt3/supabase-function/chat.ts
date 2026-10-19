@@ -7,18 +7,23 @@
 // Khi muốn dùng Claude thật: thay hàm answer() bằng một hàm gọi API Claude, với khóa
 // ANTHROPIC_API_KEY lưu trong Edge Functions > Secrets (tuyệt đối không đặt trong code).
 
-const ALLOWED_ORIGIN = 'https://jany-ne.github.io';
+// Chỉ các trang này được phép gọi hàm. localhost:5173 là địa chỉ khi bạn chạy "npm run dev" trên máy.
+const ALLOWED_ORIGINS = ['https://jany-ne.github.io', 'http://localhost:5173'];
 
-const cors = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') ?? '';
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
 
-function reply(status: number, body: Record<string, unknown>) {
+function reply(req: Request, status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
   });
 }
 
@@ -86,17 +91,17 @@ function answer(question: string, items: Item[]): string {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  if (req.method !== 'POST') return reply(405, { error: 'method' });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(req) });
+  if (req.method !== 'POST') return reply(req, 405, { error: 'method' });
 
   let payload: any;
   try {
     payload = await req.json();
   } catch {
-    return reply(400, { error: 'json' });
+    return reply(req, 400, { error: 'json' });
   }
   const question = String(payload?.message ?? '').trim();
-  if (!question || question.length > 300) return reply(400, { error: 'invalid' });
+  if (!question || question.length > 300) return reply(req, 400, { error: 'invalid' });
 
   let items: Item[] = [];
   try {
@@ -110,5 +115,5 @@ Deno.serve(async (req) => {
     // không có menu thì vẫn trả lời được các câu khác
   }
 
-  return reply(200, { reply: answer(question, items), mode: 'mock' });
+  return reply(req, 200, { reply: answer(question, items), mode: 'mock' });
 });

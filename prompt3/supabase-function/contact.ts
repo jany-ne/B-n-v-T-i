@@ -4,18 +4,23 @@
 // rồi tắt công tắc "Verify JWT" của function (giống function "book").
 // Dùng chung các secret đã có: TURNSTILE_SECRET_KEY, RESEND_API_KEY, NOTIFY_EMAIL. Không cần thêm secret mới.
 
-const ALLOWED_ORIGIN = 'https://jany-ne.github.io';
+// Chỉ các trang này được phép gọi hàm. localhost:5173 là địa chỉ khi bạn chạy "npm run dev" trên máy.
+const ALLOWED_ORIGINS = ['https://jany-ne.github.io', 'http://localhost:5173'];
 
-const cors = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') ?? '';
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
 
-function reply(status: number, body: Record<string, unknown>) {
+function reply(req: Request, status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
   });
 }
 
@@ -24,18 +29,18 @@ function esc(v: unknown) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  if (req.method !== 'POST') return reply(405, { error: 'method' });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(req) });
+  if (req.method !== 'POST') return reply(req, 405, { error: 'method' });
 
   let payload: any;
   try {
     payload = await req.json();
   } catch {
-    return reply(400, { error: 'json' });
+    return reply(req, 400, { error: 'json' });
   }
   const token = String(payload?.token ?? '');
   const f = payload?.contact ?? {};
-  if (!token) return reply(400, { error: 'captcha' });
+  if (!token) return reply(req, 400, { error: 'captcha' });
 
   // 1. Kiểm tra Turnstile với Cloudflare
   const verify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -47,7 +52,7 @@ Deno.serve(async (req) => {
     }),
   });
   const result = await verify.json();
-  if (!result.success) return reply(400, { error: 'captcha' });
+  if (!result.success) return reply(req, 400, { error: 'captcha' });
 
   // 2. Kiểm tra dữ liệu
   const name = String(f.name ?? '').trim();
@@ -60,12 +65,12 @@ Deno.serve(async (req) => {
     email.length <= 200 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
     /^(0|\+84)[0-9]{9}$/.test(phone) &&
     message.length >= 10 && message.length <= 2000;
-  if (!valid) return reply(400, { error: 'invalid' });
+  if (!valid) return reply(req, 400, { error: 'invalid' });
 
   // 3. Gửi email cho chủ quán. Ở đây email chính là nơi lưu lời nhắn nên gửi lỗi phải báo lỗi.
   const apiKey = Deno.env.get('RESEND_API_KEY');
   const to = Deno.env.get('NOTIFY_EMAIL');
-  if (!apiKey || !to) return reply(500, { error: 'config' });
+  if (!apiKey || !to) return reply(req, 500, { error: 'config' });
 
   let sent: Response;
   try {
@@ -85,8 +90,8 @@ Deno.serve(async (req) => {
       }),
     });
   } catch {
-    return reply(502, { error: 'send' });
+    return reply(req, 502, { error: 'send' });
   }
-  if (!sent.ok) return reply(502, { error: 'send' });
-  return reply(200, { ok: true });
+  if (!sent.ok) return reply(req, 502, { error: 'send' });
+  return reply(req, 200, { ok: true });
 });

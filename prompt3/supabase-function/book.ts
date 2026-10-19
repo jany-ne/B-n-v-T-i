@@ -6,13 +6,18 @@
 //   NOTIFY_EMAIL          - email nhận thông báo (khi chưa có tên miền riêng, phải là email đăng ký Resend)
 // SUPABASE_URL và SUPABASE_SERVICE_ROLE_KEY được Supabase tự cấp, không cần thêm.
 
-const ALLOWED_ORIGIN = 'https://jany-ne.github.io';
+// Chỉ các trang này được phép gọi hàm. localhost:5173 là địa chỉ khi bạn chạy "npm run dev" trên máy.
+const ALLOWED_ORIGINS = ['https://jany-ne.github.io', 'http://localhost:5173'];
 
-const cors = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') ?? '';
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  };
+}
 
 function esc(v: unknown) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -46,26 +51,26 @@ async function notifyOwner(d: Record<string, unknown>) {
   }
 }
 
-function reply(status: number, body: Record<string, unknown>) {
+function reply(req: Request, status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
   });
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  if (req.method !== 'POST') return reply(405, { error: 'method' });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(req) });
+  if (req.method !== 'POST') return reply(req, 405, { error: 'method' });
 
   let payload: any;
   try {
     payload = await req.json();
   } catch {
-    return reply(400, { error: 'json' });
+    return reply(req, 400, { error: 'json' });
   }
   const token = String(payload?.token ?? '');
   const b = payload?.booking ?? {};
-  if (!token) return reply(400, { error: 'captcha' });
+  if (!token) return reply(req, 400, { error: 'captcha' });
 
   // 1. Kiểm tra Turnstile với Cloudflare
   const verify = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -77,7 +82,7 @@ Deno.serve(async (req) => {
     }),
   });
   const result = await verify.json();
-  if (!result.success) return reply(400, { error: 'captcha' });
+  if (!result.success) return reply(req, 400, { error: 'captcha' });
 
   // 2. Kiểm tra dữ liệu đơn đặt bàn
   const name = String(b.name ?? '').trim();
@@ -95,7 +100,7 @@ Deno.serve(async (req) => {
     /^\d{2}:\d{2}(:\d{2})?$/.test(time) && time.slice(0, 5) >= '09:00' && time.slice(0, 5) <= '21:30' &&
     Number.isInteger(guests) && guests >= 1 && guests <= 20 &&
     tableId.length > 0;
-  if (!valid) return reply(400, { error: 'invalid' });
+  if (!valid) return reply(req, 400, { error: 'invalid' });
 
   const url = Deno.env.get('SUPABASE_URL')!;
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -105,7 +110,7 @@ Deno.serve(async (req) => {
   const t = await fetch(`${url}/rest/v1/restaurant_tables?id=eq.${encodeURIComponent(tableId)}&select=seats,name`, { headers });
   const rows = await t.json();
   if (!Array.isArray(rows) || rows.length === 0 || guests > rows[0].seats) {
-    return reply(400, { error: 'table' });
+    return reply(req, 400, { error: 'table' });
   }
 
   // 4. Lưu đơn. Ràng buộc trong cơ sở dữ liệu vẫn chặn đặt trùng giờ (trả 409).
@@ -116,8 +121,8 @@ Deno.serve(async (req) => {
       name, phone, booking_date: date, booking_time: time, guests, table_id: tableId, note,
     }),
   });
-  if (ins.status === 409) return reply(409, { error: 'conflict' });
-  if (!ins.ok) return reply(400, { error: 'insert' });
+  if (ins.status === 409) return reply(req, 409, { error: 'conflict' });
+  if (!ins.ok) return reply(req, 400, { error: 'insert' });
   await notifyOwner({ name, phone, date, time, guests, note, tableName: rows[0].name });
-  return reply(200, { ok: true });
+  return reply(req, 200, { ok: true });
 });
