@@ -1,24 +1,17 @@
-import Header from './components/Header.jsx';
-import Hero from './components/Hero.jsx';
-import Menu from './components/Menu.jsx';
-import Reviews from './components/Reviews.jsx';
-import Contact from './components/Contact.jsx';
-import Chatbot from './components/Chatbot.jsx';
-import Footer from './components/Footer.jsx';
+import { Route, Routes } from 'react-router-dom';
+import Layout from './components/Layout.jsx';
+import HomePage from './pages/HomePage.jsx';
+import BookingPage from './pages/BookingPage.jsx';
 
-// App ghép các "component" (mảnh giao diện) lại thành cả trang.
+// Bảng chỉ đường: địa chỉ nào hiện trang nào. Layout bọc quanh tất cả các trang.
 export default function App() {
   return (
-    <>
-      <Header />
-      <main>
-        <Hero />
-        <Menu />
-        <Reviews />
-        <Contact />
-      </main>
-      <Footer />
-      <Chatbot />
-    </>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/dat-ban" element={<BookingPage />} />
+        <Route path="*" element={<HomePage />} />
+      </Route>
+    </Routes>
   );
 }

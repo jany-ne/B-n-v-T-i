@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Hero() {
   return (
     <section
@@ -10,12 +12,12 @@ export default function Hero() {
       </h1>
       <p>Cà phê rang xay thủ công, không gian ấm cúng giữa lòng thành phố.</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <a href="#menu" className="rounded-md bg-accent px-7 py-3 font-bold text-on-accent hover:brightness-110">
+        <Link to="/" state={{ section: 'menu' }} className="rounded-md bg-accent px-7 py-3 font-bold text-on-accent hover:brightness-110">
           Xem menu
-        </a>
-        <a href="../prompt3/" className="rounded-md border-2 border-white px-7 py-3 font-bold hover:bg-white hover:text-[#3b2a20]">
+        </Link>
+        <Link to="/dat-ban" className="rounded-md border-2 border-white px-7 py-3 font-bold hover:bg-white hover:text-[#3b2a20]">
           Đặt bàn ngay
-        </a>
+        </Link>
       </div>
     </section>
   );

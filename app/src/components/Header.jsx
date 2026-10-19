@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { NAV } from '../data/site.js';
+import NavItemLink from './NavItemLink.jsx';
 
 
 export default function Header() {
@@ -16,7 +18,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-header text-on-header">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-6">
-        <a href="#hero" className="text-xl font-bold">Bạn &amp; Tôi</a>
+        <Link to="/" state={{ section: 'hero' }} className="text-xl font-bold">Bạn &amp; Tôi</Link>
 
         <button
           type="button"
@@ -38,10 +40,8 @@ export default function Header() {
         >
           <ul className="flex flex-col lg:flex-row lg:gap-6">
             {NAV.map((l) => (
-              <li key={l.href}>
-                <a href={l.href} className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)}>
-                  {l.label}
-                </a>
+              <li key={l.label}>
+                <NavItemLink item={l} className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)} />
               </li>
             ))}
           </ul>

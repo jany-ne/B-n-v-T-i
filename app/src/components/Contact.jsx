@@ -2,21 +2,18 @@ import { useRef, useState } from 'react';
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
 import { useTurnstile } from '../hooks/useTurnstile.js';
 import { SITE } from '../data/site.js';
+import { validateName, validatePhone } from '../lib/validators.js';
 
 const MAP_QUERY = encodeURIComponent(SITE.address);
 
 // Mỗi trường có một hàm kiểm tra: trả về câu báo lỗi, hoặc chuỗi rỗng nếu hợp lệ.
 const RULES = {
-  name: (v) => (v.trim() ? '' : 'Vui lòng nhập họ tên.'),
+  name: validateName,
   email: (v) => {
     if (!v.trim()) return 'Vui lòng nhập email.';
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Email chưa đúng định dạng.';
   },
-  phone: (v) => {
-    const digits = v.replace(/[\s.\-()]/g, '');
-    if (!digits) return 'Vui lòng nhập số điện thoại.';
-    return /^(0|\+84)\d{9}$/.test(digits) ? '' : 'Số điện thoại chưa đúng (VD: 0986 187 111).';
-  },
+  phone: validatePhone,
   message: (v) => (v.trim().length >= 10 ? '' : 'Lời nhắn cần ít nhất 10 ký tự.'),
 };
 

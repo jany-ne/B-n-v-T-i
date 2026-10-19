@@ -7,14 +7,15 @@ export const SITE = {
   phone: { display: '0986 187 111', tel: '0986187111' },
   facebook: 'https://www.facebook.com/kim.chi.712539',
   zalo: { display: '0986 187 186', url: 'https://zalo.me/0986187186' },
-  bookingUrl: '../prompt3/',
 };
 
 // Các liên kết điều hướng chính (menu trên cùng và chân trang).
+// - "section": cuộn tới một phần của trang chủ
+// - "to": chuyển sang một trang khác
 export const NAV = [
-  { href: '#hero', label: 'Trang chủ' },
-  { href: '#menu', label: 'Menu' },
-  { href: SITE.bookingUrl, label: 'Đặt bàn' },
-  { href: '#danh-gia', label: 'Đánh giá' },
-  { href: '#lien-he', label: 'Liên hệ' },
+  { label: 'Trang chủ', section: 'hero' },
+  { label: 'Menu', section: 'menu' },
+  { label: 'Đặt bàn', to: '/dat-ban' },
+  { label: 'Đánh giá', section: 'danh-gia' },
+  { label: 'Liên hệ', section: 'lien-he' },
 ];

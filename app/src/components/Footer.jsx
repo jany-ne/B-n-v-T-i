@@ -1,4 +1,5 @@
 import { NAV, SITE } from '../data/site.js';
+import NavItemLink from './NavItemLink.jsx';
 
 const linkClass = 'underline-offset-2 hover:underline focus-visible:underline';
 
@@ -16,8 +17,8 @@ export default function Footer() {
           <p className="mb-2 font-bold">Liên kết nhanh</p>
           <ul className="m-0 list-none p-0">
             {NAV.map((l) => (
-              <li key={l.href} className="my-1">
-                <a href={l.href} className={linkClass}>{l.label}</a>
+              <li key={l.label} className="my-1">
+                <NavItemLink item={l} className={linkClass} />
               </li>
             ))}
           </ul>
