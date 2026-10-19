@@ -170,3 +170,30 @@ test('chatbot: máy chủ lỗi thì xin lỗi, chỉ số điện thoại và c
   await expect(page.getByRole('log')).toContainText('0986 187 111');
   await expect(page.getByRole('button', { name: 'Gửi', exact: true })).toBeEnabled();
 });
+
+// ---------- Chân trang và menu ----------
+test('chân trang có liên kết nhanh, gọi điện, Zalo, Facebook', async ({ page }) => {
+  await mockSupabase(page, '/rest/v1/menu_items*');
+  await page.goto(APP);
+  const footer = page.getByRole('contentinfo');
+  await expect(footer).toContainText('Dương Bá Trạc');
+  await expect(footer).toContainText('© 2026 Bạn & Tôi');
+
+  const quick = footer.getByRole('navigation', { name: 'Liên kết nhanh' });
+  await expect(quick.getByRole('link')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ']);
+  await expect(quick.getByRole('link', { name: 'Menu' })).toHaveAttribute('href', '#menu');
+  await expect(quick.getByRole('link', { name: 'Đặt bàn' })).toHaveAttribute('href', '../prompt3/');
+
+  await expect(footer.getByRole('link', { name: /Gọi 0986 187 111/ })).toHaveAttribute('href', 'tel:0986187111');
+  const zalo = footer.getByRole('link', { name: /Zalo/ });
+  await expect(zalo).toHaveAttribute('href', 'https://zalo.me/0986187186');
+  await expect(zalo).toHaveAttribute('target', '_blank');
+  await expect(zalo).toHaveAttribute('rel', /noopener/);
+  await expect(footer.getByRole('link', { name: /Facebook/ })).toHaveAttribute('href', /facebook\.com/);
+});
+
+test('menu trên cùng có mục Đặt bàn theo đúng thứ tự', async ({ page }) => {
+  await mockSupabase(page, '/rest/v1/menu_items*');
+  await page.goto(APP);
+  await expect(page.locator('#site-nav a')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ']);
+});

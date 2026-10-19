@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
 import { useTurnstile } from '../hooks/useTurnstile.js';
+import { SITE } from '../data/site.js';
 
-const MAP_QUERY = encodeURIComponent('Hẻm 290 Đường Dương Bá Trạc, Phường Chánh Hưng, TP.HCM');
+const MAP_QUERY = encodeURIComponent(SITE.address);
 
 // Mỗi trường có một hàm kiểm tra: trả về câu báo lỗi, hoặc chuỗi rỗng nếu hợp lệ.
 const RULES = {
@@ -94,13 +95,13 @@ export default function Contact() {
 
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
           <address className="not-italic text-center lg:text-left">
-            <p className="my-1">Hẻm 290 Đường Dương Bá Trạc, Phường Chánh Hưng, TP.HCM</p>
-            <p className="my-1">Mở cửa 9:00 - 22:00 hằng ngày</p>
-            <p className="my-1">Điện thoại: <a href="tel:0986187111" className="underline">0986 187 111</a></p>
+            <p className="my-1">{SITE.address}</p>
+            <p className="my-1">{SITE.hours}</p>
+            <p className="my-1">Điện thoại: <a href={`tel:${SITE.phone.tel}`} className="underline">{SITE.phone.display}</a></p>
             <p className="mt-4 flex flex-wrap justify-center gap-3 lg:justify-start">
               {[
-                { href: 'https://www.facebook.com/kim.chi.712539', label: 'Facebook' },
-                { href: 'https://zalo.me/0986187186', label: 'Zalo 0986 187 186' },
+                { href: SITE.facebook, label: 'Facebook' },
+                { href: SITE.zalo.url, label: `Zalo ${SITE.zalo.display}` },
               ].map((l) => (
                 <a
                   key={l.href}

@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
+import { NAV } from '../data/site.js';
 
-const LINKS = [
-  { href: '#hero', label: 'Trang chủ' },
-  { href: '#menu', label: 'Menu' },
-  { href: '#danh-gia', label: 'Đánh giá' },
-  { href: '#lien-he', label: 'Liên hệ' },
-];
 
 export default function Header() {
   // useState: biến "nhớ" trạng thái. Đổi giá trị thì React tự vẽ lại giao diện.
@@ -42,7 +37,7 @@ export default function Header() {
           className={`${open ? 'block' : 'hidden'} absolute left-0 right-0 top-16 bg-header lg:static lg:block`}
         >
           <ul className="flex flex-col lg:flex-row lg:gap-6">
-            {LINKS.map((l) => (
+            {NAV.map((l) => (
               <li key={l.href}>
                 <a href={l.href} className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)}>
                   {l.label}
