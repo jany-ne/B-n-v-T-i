@@ -114,3 +114,59 @@ test('máy chủ báo captcha sai hoặc lỗi thì hiện đúng thông báo', 
   await expect(page.getByRole('status')).toContainText('0986 187 111');
   await expect(page.getByRole('button', { name: 'Gửi lời nhắn' })).toBeEnabled();
 });
+
+// ---------- Chatbot ----------
+async function openChat(page, chatFn) {
+  await mockSupabase(page, '/rest/v1/menu_items*');
+  await mockSupabase(page, '/functions/v1/chat', chatFn || (() => ({ status: 200, body: { reply: 'Quán mở cửa 9:00 - 22:00 hằng ngày.' } })));
+  await page.goto(APP);
+  await page.getByRole('button', { name: 'Hỏi quán' }).click();
+}
+
+test('chatbot: mở có lời chào, Escape đóng và trả con trỏ về nút mở', async ({ page }) => {
+  await openChat(page);
+  const panel = page.getByRole('region', { name: 'Trò chuyện với quán' });
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText('Chào bạn');
+  await expect(page.getByLabel('Câu hỏi của bạn')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(panel).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Hỏi quán' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Hỏi quán' })).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('chatbot: gửi câu hỏi thì hiện câu hỏi và câu trả lời, gửi đúng dữ liệu', async ({ page }) => {
+  let sent;
+  await openChat(page, (r) => { sent = r.postDataJSON(); return { status: 200, body: { reply: 'Quán mở cửa 9:00 - 22:00 hằng ngày.' } }; });
+  await page.getByLabel('Câu hỏi của bạn').fill('Mấy giờ mở cửa?');
+  await page.getByRole('button', { name: 'Gửi', exact: true }).click();
+  const log = page.getByRole('log');
+  await expect(log).toContainText('Mấy giờ mở cửa?');
+  await expect(log).toContainText('9:00 - 22:00');
+  await expect(log).not.toContainText('Đang trả lời');
+  await expect(page.getByLabel('Câu hỏi của bạn')).toHaveValue('');
+  expect(sent).toEqual({ message: 'Mấy giờ mở cửa?' });
+});
+
+test('chatbot: bấm câu hỏi gợi ý thì gửi luôn', async ({ page }) => {
+  await openChat(page);
+  await page.getByRole('button', { name: 'Giờ mở cửa?' }).click();
+  await expect(page.getByRole('log')).toContainText('9:00');
+});
+
+test('chatbot: không gửi câu hỏi trống', async ({ page }) => {
+  let called = false;
+  await openChat(page, () => { called = true; return { status: 200, body: { reply: 'x' } }; });
+  await page.getByLabel('Câu hỏi của bạn').fill('   ');
+  await page.getByRole('button', { name: 'Gửi', exact: true }).click();
+  expect(called).toBe(false);
+  await expect(page.getByRole('log').locator('div')).toHaveCount(1); // chỉ có lời chào
+});
+
+test('chatbot: máy chủ lỗi thì xin lỗi, chỉ số điện thoại và cho gửi tiếp', async ({ page }) => {
+  await openChat(page, () => ({ status: 500, body: {} }));
+  await page.getByLabel('Câu hỏi của bạn').fill('xin chào');
+  await page.getByRole('button', { name: 'Gửi', exact: true }).click();
+  await expect(page.getByRole('log')).toContainText('0986 187 111');
+  await expect(page.getByRole('button', { name: 'Gửi', exact: true })).toBeEnabled();
+});
