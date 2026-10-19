@@ -428,3 +428,5 @@ button:focus-visible {
 
 .menu-preview { display: block; max-width: 160px; margin-top: 8px; border-radius: 8px; box-shadow: var(--shadow); }
 #mn-remove-image { margin-top: 8px; }
+
+[hidden] { display: none !important; }
