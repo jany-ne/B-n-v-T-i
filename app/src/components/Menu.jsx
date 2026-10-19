@@ -29,10 +29,10 @@ export default function Menu() {
   }, []);
 
   return (
-    <section id="menu" className="px-4 py-12">
-      <div className="mx-auto max-w-5xl">
+    <section id="menu" className="py-12 md:py-16">
+      <div className="page-container">
         <h2 className="mb-7 text-center text-2xl font-bold lg:text-3xl">Menu đồ uống</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((it) => (
             <article key={it.id} className="overflow-hidden rounded-lg bg-surface shadow">
               {it.image_url && (

@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-header text-on-header">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+      <div className="flex h-16 w-full items-center justify-between px-4 md:px-6">
         <a href="#hero" className="text-xl font-bold">Bạn &amp; Tôi</a>
 
         <button

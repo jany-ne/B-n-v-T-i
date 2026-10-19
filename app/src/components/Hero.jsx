@@ -6,7 +6,7 @@ export default function Hero() {
       style={{ backgroundImage: 'linear-gradient(rgb(40 28 20 / 0.65), rgb(40 28 20 / 0.65)), url(images/hero.jpg)' }}
     >
       <h1 className="mx-auto mb-3 max-w-2xl text-3xl font-bold leading-tight lg:text-5xl">
-        Một tách cà phê, một ngày tươi mới
+        Một tách cà phê, một ngày tươi mới, nơi kết nối những tâm hồn yêu cà phê.
       </h1>
       <p>Cà phê rang xay thủ công, không gian ấm cúng giữa lòng thành phố.</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -14,7 +14,7 @@ export default function Hero() {
           Xem menu
         </a>
         <a href="../prompt3/" className="rounded-md border-2 border-white px-7 py-3 font-bold hover:bg-white hover:text-[#3b2a20]">
-          Đặt bàn
+          Đặt bàn ngay
         </a>
       </div>
     </section>
