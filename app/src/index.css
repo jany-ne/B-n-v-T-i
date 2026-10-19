@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* Bảng màu của quán. Tailwind biến các màu này thành class: bg-bg, text-text, bg-accent... */
+:root {
+  --bg: #faf5ee;
+  --bg-alt: #f1e7d8;
+  --surface: #ffffff;
+  --text: #3b2a20;
+  --text-muted: #6f5a4c;
+  --primary: #8b5e3c;
+  --accent: #d9a066;
+  --on-accent: #3b2a20;
+  --header-bg: #3b2a20;
+  --header-text: #faf5ee;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1612;
+    --bg-alt: #251d17;
+    --surface: #2e241d;
+    --text: #f3e9dd;
+    --text-muted: #b9a898;
+    --primary: #d9a066;
+    --accent: #d9a066;
+    --on-accent: #1c1612;
+    --header-bg: #120d0a;
+    --header-text: #f3e9dd;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-header: var(--header-bg);
+  --color-on-header: var(--header-text);
+  --font-sans: Georgia, Cambria, "Times New Roman", "Noto Serif", "DejaVu Serif", "Liberation Serif", Times, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 64px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
