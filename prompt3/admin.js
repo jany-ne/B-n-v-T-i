@@ -164,6 +164,83 @@
   };
   let menuItems = [];
 
+  // ---------- Upload ảnh món ----------
+  const imgFile = document.getElementById('mn-file');
+  const imgPreview = document.getElementById('mn-preview');
+  const imgRemove = document.getElementById('mn-remove-image');
+  const imgStatus = document.getElementById('mn-image-status');
+  let uploading = false;
+
+  // Đường dẫn cũ dạng "images/x.jpg" nằm trong thư mục prompt2
+  function previewSrc(u) {
+    if (!u) return '';
+    return /^https?:/.test(u) ? u : '../prompt2/' + u;
+  }
+
+  function setImage(u) {
+    mn.image.value = u || '';
+    const src = previewSrc(u);
+    imgPreview.hidden = !src;
+    if (src) imgPreview.src = src; else imgPreview.removeAttribute('src');
+    imgRemove.hidden = !src;
+  }
+
+  // Thu nhỏ ảnh còn tối đa 800px chiều rộng rồi nén JPEG để trang tải nhanh
+  function resizeImage(file) {
+    return createImageBitmap(file).then(function (bmp) {
+      const scale = Math.min(1, 800 / bmp.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      return new Promise(function (resolve, reject) {
+        canvas.toBlob(function (b) { b ? resolve(b) : reject(new Error('resize')); }, 'image/jpeg', 0.82);
+      });
+    });
+  }
+
+  imgFile.addEventListener('change', function () {
+    const file = imgFile.files[0];
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { imgStatus.textContent = 'Chỉ nhận ảnh JPG, PNG hoặc WebP.'; imgFile.value = ''; return; }
+    if (file.size > 10 * 1024 * 1024) { imgStatus.textContent = 'Ảnh quá lớn (tối đa 10MB).'; imgFile.value = ''; return; }
+
+    uploading = true;
+    menuSubmit.disabled = true;
+    imgStatus.textContent = 'Đang tải ảnh lên...';
+    const name = (window.crypto.randomUUID ? window.crypto.randomUUID() : String(Date.now())) + '.jpg';
+
+    resizeImage(file)
+      .then(function (blob) {
+        return fetch(URL + '/storage/v1/object/menu-images/' + name, {
+          method: 'POST',
+          headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'image/jpeg', 'x-upsert': 'false' },
+          body: blob
+        });
+      })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        setImage(URL + '/storage/v1/object/public/menu-images/' + name);
+        imgStatus.textContent = 'Đã tải ảnh lên.';
+      })
+      .catch(function () {
+        imgStatus.textContent = 'Tải ảnh không thành công. Bạn đã chạy supabase-storage.sql chưa?';
+      })
+      .finally(function () {
+        uploading = false;
+        menuSubmit.disabled = false;
+        imgFile.value = '';
+      });
+  });
+
+  imgRemove.addEventListener('click', function () {
+    setImage('');
+    imgStatus.textContent = '';
+  });
+
   function menuMessage(text, isError) {
     menuStatus.textContent = text;
     menuStatus.classList.toggle('is-error', Boolean(isError));
@@ -173,6 +250,8 @@
   function resetMenuForm() {
     menuForm.reset();
     mn.id.value = '';
+    setImage('');
+    imgStatus.textContent = '';
     mn.sort.value = menuItems.length ? Math.max.apply(null, menuItems.map(function (m) { return m.sort; })) + 1 : 1;
     menuSubmit.textContent = 'Thêm món';
     menuCancel.hidden = true;
@@ -217,7 +296,8 @@
     mn.name.value = m.name;
     mn.desc.value = m.description || '';
     mn.price.value = m.price;
-    mn.image.value = m.image_url || '';
+    setImage(m.image_url);
+    imgStatus.textContent = '';
     mn.alt.value = m.alt_text || '';
     mn.sort.value = m.sort;
     mn.available.checked = m.available;
@@ -235,6 +315,7 @@
   menuForm.addEventListener('submit', function (e) {
     e.preventDefault();
     const name = mn.name.value.trim();
+    if (uploading) { menuMessage('Ảnh đang được tải lên, vui lòng đợi.', true); return; }
     const price = Number(mn.price.value);
     if (!name) { menuMessage('Vui lòng nhập tên món.', true); mn.name.focus(); return; }
     if (mn.price.value === '' || !Number.isInteger(price) || price < 0) { menuMessage('Giá phải là số nguyên từ 0 trở lên.', true); mn.price.focus(); return; }
