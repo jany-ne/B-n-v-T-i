@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { NAV } from '../data/site.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import NavItemLink from './NavItemLink.jsx';
 
 
 export default function Header() {
   // useState: biến "nhớ" trạng thái. Đổi giá trị thì React tự vẽ lại giao diện.
   const [open, setOpen] = useState(false);
+  const { token, logout } = useAuth();
 
   // useEffect: chạy một việc phụ (ở đây là lắng nghe phím Escape) khi component xuất hiện.
   useEffect(() => {
@@ -44,6 +46,20 @@ export default function Header() {
                 <NavItemLink item={l} className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)} />
               </li>
             ))}
+            {token && (
+              <li>
+                <Link to="/quan-ly" className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)}>Quản lý</Link>
+              </li>
+            )}
+            <li>
+              {token ? (
+                <button type="button" className="block w-full px-4 py-3 text-left hover:underline lg:w-auto lg:px-0" onClick={() => { logout(); setOpen(false); }}>
+                  Logout
+                </button>
+              ) : (
+                <Link to="/quan-ly" className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)}>Login</Link>
+              )}
+            </li>
           </ul>
         </nav>
       </div>

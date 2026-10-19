@@ -195,5 +195,5 @@ test('chân trang có liên kết nhanh, gọi điện, Zalo, Facebook', async (
 test('menu trên cùng có mục Đặt bàn theo đúng thứ tự', async ({ page }) => {
   await mockSupabase(page, '/rest/v1/menu_items*');
   await page.goto(APP);
-  await expect(page.locator('#site-nav a')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ']);
+  await expect(page.locator('#site-nav a')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ', 'Login']);
 });

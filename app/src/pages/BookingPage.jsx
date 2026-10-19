@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { api } from '../lib/supabase.js';
 import { SITE } from '../data/site.js';
 import { useTurnstile } from '../hooks/useTurnstile.js';
 import { validateName, validatePhone } from '../lib/validators.js';
@@ -31,14 +31,6 @@ const RULES = {
 };
 
 const EMPTY = { name: '', phone: '', date: '', time: '', guests: '2', note: '' };
-
-// Gọi Supabase kèm khóa công khai.
-function api(path, options = {}) {
-  return fetch(SUPABASE_URL + path, {
-    ...options,
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', ...options.headers },
-  });
-}
 
 const inputClass = 'w-full rounded-md border border-muted bg-surface px-3 py-2 text-text aria-[invalid=true]:border-red-600 focus-visible:outline-3 focus-visible:outline-accent';
 const errorClass = 'mt-1 text-sm text-red-700 dark:text-red-400';
