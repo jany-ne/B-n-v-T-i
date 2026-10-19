@@ -1,10 +1,12 @@
-# Chạy toàn bộ bài test mỗi khi có code mới được push lên main hoặc có pull request.
-name: Kiểm thử
+# Mỗi khi có code mới được push lên main (hoặc có pull request): chạy toàn bộ bài test.
+# Nếu là push lên main và test qua, tự build bản React và đưa lên GitHub Pages.
+name: Kiểm thử và triển khai
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch: # cho phép bấm chạy tay trên tab Actions
 
 jobs:
   test:
@@ -38,3 +40,44 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  deploy:
+    # Chỉ đưa lên mạng khi push lên main (hoặc bấm chạy tay), và chỉ khi test đã qua.
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Build bản React
+        run: |
+          npm ci --prefix app
+          npm --prefix app run build
+
+      - name: Ghép trang web (bản React ở gốc, trang cũ giữ nguyên)
+        run: bash scripts/build-site.sh
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
