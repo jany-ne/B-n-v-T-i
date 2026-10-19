@@ -9,7 +9,7 @@ export default function Hero() {
       style={{ backgroundImage: 'linear-gradient(rgb(40 28 20 / 0.65), rgb(40 28 20 / 0.65)), url(' + asset('images/hero.jpg') + ')' }}
     >
       <h1 className="mx-auto mb-3 max-w-2xl text-3xl font-bold leading-tight lg:text-5xl">
-        Một tách cà phê, một ngày tươi mới, nơi kết nối những tâm hồn yêu cà phê.
+        Một tách cà phê, một ngày tươi mới.
       </h1>
       <p>Cà phê rang xay thủ công, không gian ấm cúng giữa lòng thành phố.</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
