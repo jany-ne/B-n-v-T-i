@@ -22,3 +22,18 @@ Turnstile và Formspree, nên không đụng vào dữ liệu thật và không 
 Các file SQL trong `prompt3/` (chạy trong SQL Editor, thay `ADMIN_EMAIL` bằng email quản lý, **không commit email thật**):
 `supabase.sql`, `supabase-tables.sql`, `supabase-captcha.sql`, `supabase-menu.sql`, `supabase-storage.sql`.
 Mã Edge Function `book` nằm ở `prompt3/supabase-function/book.ts`.
+
+## Triển khai (GitHub Pages bằng GitHub Actions)
+
+Mỗi lần push lên `main`, workflow `.github/workflows/test.yml` chạy test; nếu qua thì build bản React và đưa lên mạng:
+
+- `/` là bản React (`app/`).
+- `/prompt1/`, `/prompt2/`, `/prompt3/` là các trang cũ, vẫn giữ nguyên (xem `scripts/build-site.sh`).
+
+Muốn chạy tay: tab **Actions** trên GitHub, chọn "Kiểm thử và triển khai", bấm **Run workflow**.
+
+Quay về cách cũ (GitHub Pages tự lấy thư mục gốc của nhánh `main`, không build):
+
+```bash
+gh api -X PUT repos/jany-ne/B-n-v-T-i/pages -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
+```
