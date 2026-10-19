@@ -178,6 +178,7 @@
   }
 
   function setImage(u) {
+    if (!u) recrop.hidden = true;
     mn.image.value = u || '';
     const src = previewSrc(u);
     imgPreview.hidden = !src;
@@ -185,46 +186,117 @@
     imgRemove.hidden = !src;
   }
 
-  // Thu nhỏ ảnh còn tối đa 800px chiều rộng rồi nén JPEG để trang tải nhanh
-  function resizeImage(file) {
-    return createImageBitmap(file).then(function (bmp) {
-      const scale = Math.min(1, 800 / bmp.width);
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(bmp.width * scale);
-      canvas.height = Math.round(bmp.height * scale);
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-      return new Promise(function (resolve, reject) {
-        canvas.toBlob(function (b) { b ? resolve(b) : reject(new Error('resize')); }, 'image/jpeg', 0.82);
-      });
-    });
+  // ---------- Cắt ảnh theo khung 4:5 (giống khung hiển thị trên trang chủ) ----------
+  const cropper = document.getElementById('mn-cropper');
+  const cropCanvas = document.getElementById('mn-crop-canvas');
+  const cropZoom = document.getElementById('mn-crop-zoom');
+  const cropOk = document.getElementById('mn-crop-ok');
+  const cropCancel = document.getElementById('mn-crop-cancel');
+  const recrop = document.getElementById('mn-recrop');
+  const cctx = cropCanvas.getContext('2d');
+  const CW = cropCanvas.width;
+  const CH = cropCanvas.height;
+  let bmp = null;
+  let base = 1;
+  let zoom = 1;
+  let ox = 0;
+  let oy = 0;
+
+  function clampCrop() {
+    const w = bmp.width * base * zoom;
+    const h = bmp.height * base * zoom;
+    ox = Math.min(0, Math.max(CW - w, ox));
+    oy = Math.min(0, Math.max(CH - h, oy));
   }
 
-  imgFile.addEventListener('change', function () {
-    const file = imgFile.files[0];
-    if (!file) return;
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { imgStatus.textContent = 'Chỉ nhận ảnh JPG, PNG hoặc WebP.'; imgFile.value = ''; return; }
-    if (file.size > 10 * 1024 * 1024) { imgStatus.textContent = 'Ảnh quá lớn (tối đa 10MB).'; imgFile.value = ''; return; }
+  function drawCrop() {
+    cctx.fillStyle = '#fff';
+    cctx.fillRect(0, 0, CW, CH);
+    cctx.drawImage(bmp, ox, oy, bmp.width * base * zoom, bmp.height * base * zoom);
+  }
 
+  function openCropper(b) {
+    bmp = b;
+    base = Math.max(CW / b.width, CH / b.height);
+    zoom = 1;
+    cropZoom.value = 1;
+    ox = (CW - b.width * base) / 2;
+    oy = (CH - b.height * base) / 2;
+    clampCrop();
+    drawCrop();
+    cropper.hidden = false;
+    recrop.hidden = true;
+    cropCanvas.focus();
+  }
+
+  cropZoom.addEventListener('input', function () {
+    // Phóng to quanh tâm khung
+    const old = base * zoom;
+    const cx = (CW / 2 - ox) / old;
+    const cy = (CH / 2 - oy) / old;
+    zoom = Number(cropZoom.value);
+    const now = base * zoom;
+    ox = CW / 2 - cx * now;
+    oy = CH / 2 - cy * now;
+    clampCrop();
+    drawCrop();
+  });
+
+  let drag = null;
+  cropCanvas.addEventListener('pointerdown', function (e) {
+    drag = { x: e.clientX, y: e.clientY, ox: ox, oy: oy };
+    cropCanvas.setPointerCapture(e.pointerId);
+  });
+  cropCanvas.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    const k = CW / cropCanvas.getBoundingClientRect().width;
+    ox = drag.ox + (e.clientX - drag.x) * k;
+    oy = drag.oy + (e.clientY - drag.y) * k;
+    clampCrop();
+    drawCrop();
+  });
+  function endDrag() { drag = null; }
+  cropCanvas.addEventListener('pointerup', endDrag);
+  cropCanvas.addEventListener('pointercancel', endDrag);
+
+  cropCanvas.addEventListener('keydown', function (e) {
+    const step = 10;
+    const move = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (!move) return;
+    e.preventDefault();
+    ox += move[0];
+    oy += move[1];
+    clampCrop();
+    drawCrop();
+  });
+
+  function closeCropper() {
+    cropper.hidden = true;
+    imgFile.value = '';
+  }
+
+  cropCancel.addEventListener('click', function () {
+    closeCropper();
+    recrop.hidden = !bmp || !mn.image.value;
+  });
+
+  recrop.addEventListener('click', function () { if (bmp) openCropper(bmp); });
+
+  function uploadBlob(blob) {
     uploading = true;
     menuSubmit.disabled = true;
     imgStatus.textContent = 'Đang tải ảnh lên...';
     const name = (window.crypto.randomUUID ? window.crypto.randomUUID() : String(Date.now())) + '.jpg';
-
-    resizeImage(file)
-      .then(function (blob) {
-        return fetch(URL + '/storage/v1/object/menu-images/' + name, {
-          method: 'POST',
-          headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'image/jpeg', 'x-upsert': 'false' },
-          body: blob
-        });
-      })
+    return fetch(URL + '/storage/v1/object/menu-images/' + name, {
+      method: 'POST',
+      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'image/jpeg', 'x-upsert': 'false' },
+      body: blob
+    })
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         setImage(URL + '/storage/v1/object/public/menu-images/' + name);
         imgStatus.textContent = 'Đã tải ảnh lên.';
+        recrop.hidden = false;
       })
       .catch(function () {
         imgStatus.textContent = 'Tải ảnh không thành công. Bạn đã chạy supabase-storage.sql chưa?';
@@ -232,12 +304,40 @@
       .finally(function () {
         uploading = false;
         menuSubmit.disabled = false;
-        imgFile.value = '';
       });
+  }
+
+  cropOk.addEventListener('click', function () {
+    const out = document.createElement('canvas');
+    out.width = 600;
+    out.height = 750;
+    const k = out.width / CW;
+    const octx = out.getContext('2d');
+    octx.fillStyle = '#fff';
+    octx.fillRect(0, 0, out.width, out.height);
+    octx.drawImage(bmp, ox * k, oy * k, bmp.width * base * zoom * k, bmp.height * base * zoom * k);
+    cropper.hidden = true;
+    imgFile.value = '';
+    out.toBlob(function (blob) {
+      if (!blob) { imgStatus.textContent = 'Không xử lý được ảnh.'; return; }
+      uploadBlob(blob);
+    }, 'image/jpeg', 0.85);
+  });
+
+  imgFile.addEventListener('change', function () {
+    const file = imgFile.files[0];
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { imgStatus.textContent = 'Chỉ nhận ảnh JPG, PNG hoặc WebP.'; imgFile.value = ''; return; }
+    if (file.size > 10 * 1024 * 1024) { imgStatus.textContent = 'Ảnh quá lớn (tối đa 10MB).'; imgFile.value = ''; return; }
+    imgStatus.textContent = '';
+    createImageBitmap(file)
+      .then(openCropper)
+      .catch(function () { imgStatus.textContent = 'Không đọc được ảnh này.'; imgFile.value = ''; });
   });
 
   imgRemove.addEventListener('click', function () {
     setImage('');
+    recrop.hidden = true;
     imgStatus.textContent = '';
   });
 
@@ -250,6 +350,8 @@
   function resetMenuForm() {
     menuForm.reset();
     mn.id.value = '';
+    cropper.hidden = true;
+    bmp = null;
     setImage('');
     imgStatus.textContent = '';
     mn.sort.value = menuItems.length ? Math.max.apply(null, menuItems.map(function (m) { return m.sort; })) + 1 : 1;
@@ -296,7 +398,10 @@
     mn.name.value = m.name;
     mn.desc.value = m.description || '';
     mn.price.value = m.price;
+    cropper.hidden = true;
+    bmp = null;
     setImage(m.image_url);
+    recrop.hidden = true;
     imgStatus.textContent = '';
     mn.alt.value = m.alt_text || '';
     mn.sort.value = m.sort;
