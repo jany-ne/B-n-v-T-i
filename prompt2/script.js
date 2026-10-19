@@ -71,10 +71,12 @@
     e.preventDefault();
     status.hidden = true;
     const invalid = fields.filter(function (f) { return !validate(f); });
+    if (!captchaToken) showCaptcha('Vui lòng xác minh bạn không phải robot.');
     if (invalid.length) {
       invalid[0].focus();
       return;
     }
+    if (!captchaToken) return;
     send();
   });
 
@@ -84,27 +86,66 @@
     status.hidden = false;
   }
 
+  // ---------- Captcha (Cloudflare Turnstile) ----------
+  const captchaError = document.getElementById('cf-captcha-error');
+  let widgetId = null;
+  let captchaToken = '';
+
+  function showCaptcha(msg) {
+    captchaError.textContent = msg;
+    captchaError.hidden = !msg;
+  }
+
+  function resetCaptcha() {
+    captchaToken = '';
+    if (window.turnstile && widgetId !== null) window.turnstile.reset(widgetId);
+  }
+
+  function renderCaptcha() {
+    if (!window.turnstile) { window.setTimeout(renderCaptcha, 200); return; }
+    widgetId = window.turnstile.render('#cf-captcha', {
+      sitekey: window.TURNSTILE_SITE_KEY,
+      language: 'vi',
+      callback: function (t) { captchaToken = t; showCaptcha(''); },
+      'expired-callback': function () { captchaToken = ''; },
+      'error-callback': function () { captchaToken = ''; showCaptcha('Không tải được xác minh. Vui lòng tải lại trang.'); }
+    });
+  }
+  renderCaptcha();
+
   function send() {
-    const endpoint = form.dataset.endpoint;
     const button = form.querySelector('button[type="submit"]');
     const label = button.textContent;
+    const data = new FormData(form);
 
     button.disabled = true;
     button.textContent = 'Đang gửi...';
 
-    // Không có endpoint: giả lập gửi thành công
-    const request = endpoint
-      ? fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json' },
-          body: new FormData(form)
-        }).then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-        })
-      : Promise.resolve();
-
-    request
-      .then(function () {
+    fetch(window.SUPABASE_URL + '/functions/v1/contact', {
+      method: 'POST',
+      headers: {
+        'apikey': window.SUPABASE_KEY,
+        'Authorization': 'Bearer ' + window.SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token: captchaToken,
+        contact: {
+          name: data.get('name'),
+          email: data.get('email'),
+          phone: data.get('phone'),
+          message: data.get('message')
+        }
+      })
+    })
+      .then(function (res) {
+        if (res.status === 400) {
+          return res.json().catch(function () { return {}; }).then(function (r) {
+            if (r.error === 'captcha') showStatus('Xác minh không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.', true);
+            else showStatus('Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.', true);
+          });
+        }
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         form.reset();
         showStatus('Cảm ơn bạn! Bạn & Tôi đã nhận được lời nhắn.', false);
       })
@@ -112,6 +153,7 @@
         showStatus('Gửi không thành công. Vui lòng thử lại sau hoặc gọi 0986 187 111.', true);
       })
       .finally(function () {
+        resetCaptcha();
         button.disabled = false;
         button.textContent = label;
       });

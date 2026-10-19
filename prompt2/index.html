@@ -130,7 +130,7 @@
             </p>
           </address>
 
-          <form class="contact-form" id="contact-form" data-endpoint="https://formspree.io/f/xdeapevl" novalidate>
+          <form class="contact-form" id="contact-form" novalidate>
             <div class="field">
               <label for="cf-name">Họ tên</label>
               <input id="cf-name" name="name" type="text" autocomplete="name" required>
@@ -150,6 +150,10 @@
               <label for="cf-message">Lời nhắn</label>
               <textarea id="cf-message" name="message" rows="4" required></textarea>
               <p class="field-error" id="cf-message-error" hidden></p>
+            </div>
+            <div class="field">
+              <div id="cf-captcha"></div>
+              <p class="field-error" id="cf-captcha-error" hidden></p>
             </div>
             <button type="submit" class="btn">Gửi lời nhắn</button>
             <p class="form-status" id="cf-status" role="status" hidden></p>
@@ -171,6 +175,7 @@
   </footer>
 
   <script src="../prompt3/config.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script src="script.js" defer></script>
   <script src="../prompt3/auth-link.js" defer></script>
   <script src="chat.js" defer></script>
