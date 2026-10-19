@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jany-ne/B-n-v-T-i.git"
+    "url": "git+https://github.com/jany-ne/ban-va-toi.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jany-ne/B-n-v-T-i/issues"
+    "url": "https://github.com/jany-ne/ban-va-toi/issues"
   },
-  "homepage": "https://github.com/jany-ne/B-n-v-T-i#readme",
+  "homepage": "https://github.com/jany-ne/ban-va-toi#readme",
   "private": "true",
   "devDependencies": {
     "@playwright/test": "1.64.1",

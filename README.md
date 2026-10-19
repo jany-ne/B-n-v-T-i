@@ -35,5 +35,5 @@ Muốn chạy tay: tab **Actions** trên GitHub, chọn "Kiểm thử và triể
 Quay về cách cũ (GitHub Pages tự lấy thư mục gốc của nhánh `main`, không build):
 
 ```bash
-gh api -X PUT repos/jany-ne/B-n-v-T-i/pages -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
+gh api -X PUT repos/jany-ne/ban-va-toi/pages -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
 ```

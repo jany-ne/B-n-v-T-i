@@ -5,7 +5,7 @@ import './index.css';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 
-const base = import.meta.env.BASE_URL; // '/' khi chạy trên máy, '/B-n-v-T-i/' khi lên mạng
+const base = import.meta.env.BASE_URL; // '/' khi chạy trên máy, '/ban-va-toi/' khi lên mạng
 
 // Địa chỉ cũ dạng ".../#/dat-ban" tự chuyển sang địa chỉ sạch ".../dat-ban".
 if (window.location.hash.startsWith('#/')) {

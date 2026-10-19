@@ -69,7 +69,7 @@ jobs:
       - name: Build bản React
         run: |
           npm ci --prefix app
-          VITE_BASE=/B-n-v-T-i/ npm --prefix app run build
+          VITE_BASE=/ban-va-toi/ npm --prefix app run build
 
       - name: Ghép trang web (bản React ở gốc, trang cũ giữ nguyên)
         run: bash scripts/build-site.sh

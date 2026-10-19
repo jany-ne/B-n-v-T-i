@@ -2,7 +2,7 @@
 # Ghép thư mục "site" sẽ được đưa lên mạng:
 #   - bản React (app/dist) ở địa chỉ gốc
 #   - các trang cũ (prompt1, prompt2, prompt3) vẫn ở địa chỉ riêng của chúng
-# Cần build trước:  VITE_BASE=/B-n-v-T-i/ npm --prefix app run build
+# Cần build trước:  VITE_BASE=/ban-va-toi/ npm --prefix app run build
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
