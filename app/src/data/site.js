@@ -2,7 +2,7 @@
 // nên khi đổi số điện thoại hay địa chỉ bạn chỉ sửa một nơi.
 export const SITE = {
   name: 'Bạn & Tôi',
-  address: 'Hẻm 290 Đường Dương Bá Trạc, Phường Chánh Hưng, TP.HCM',
+  address: '290 Đường Dương Bá Trạc, Phường Chánh Hưng, TP.HCM',
   hours: 'Mở cửa 9:00 - 22:00 hằng ngày',
   phone: { display: '0986 187 111', tel: '0986187111' },
   facebook: 'https://www.facebook.com/kim.chi.712539',

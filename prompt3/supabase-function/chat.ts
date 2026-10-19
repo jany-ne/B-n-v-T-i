@@ -29,7 +29,7 @@ function reply(req: Request, status: number, body: Record<string, unknown>) {
 
 const SHOP = {
   hours: 'Quán mở cửa 9:00 - 22:00 hằng ngày.',
-  address: 'Quán ở Hẻm 290 Đường Dương Bá Trạc, Phường Chánh Hưng, TP.HCM.',
+  address: 'Quán ở 290 Đường Dương Bá Trạc, Phường Chánh Hưng, TP.HCM.',
   phone: '0986 187 111',
   zalo: '0986 187 186',
 };
