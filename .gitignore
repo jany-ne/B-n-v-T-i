@@ -4,3 +4,6 @@ playwright-report/
 .DS_Store
 dist/
 site/
+
+# Bài luyện dựng giao diện từ thiết kế: chỉ giữ trên máy, không đưa lên GitHub
+prompt4/
