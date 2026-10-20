@@ -1,9 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { formatPrices } from '../../data/menu.js';
 import ImageField from './ImageField.jsx';
 
 const nextSort = (list) => (list.length ? Math.max(...list.map((m) => m.sort)) + 1 : 1);
-const emptyForm = (list = []) => ({ id: '', name: '', description: '', price: '', image_url: '', alt_text: '', sort: String(nextSort(list)), available: true });
+const emptyForm = (list = []) => ({
+  id: '', name: '', description: '', price: '', price_m: '', price_l: '',
+  image_url: '', alt_text: '', sort: String(nextSort(list)), available: true,
+});
+
+function parsePrice(raw, required) {
+  if (raw === '' || raw == null) return required ? { error: true } : { value: null };
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 0) return { error: true };
+  return { value: n };
+}
 
 const inputClass = 'w-full rounded-md border border-muted bg-surface px-3 py-2 text-text focus-visible:outline-3 focus-visible:outline-accent';
 const outlineBtn = 'rounded-md border px-3 py-1.5';
@@ -39,7 +50,10 @@ export default function MenuAdmin() {
 
   function startEdit(m) {
     setValues({
-      id: m.id, name: m.name, description: m.description || '', price: String(m.price),
+      id: m.id, name: m.name, description: m.description || '',
+      price: String(m.price),
+      price_m: m.price_m == null ? '' : String(m.price_m),
+      price_l: m.price_l == null ? '' : String(m.price_l),
       image_url: m.image_url || '', alt_text: m.alt_text || '', sort: String(m.sort), available: m.available,
     });
     setStatus(null);
@@ -49,14 +63,20 @@ export default function MenuAdmin() {
     e.preventDefault();
     if (uploading) { setStatus({ isError: true, text: 'Ảnh đang được tải lên, vui lòng đợi.' }); return; }
     const name = values.name.trim();
-    const price = Number(values.price);
+    const s = parsePrice(values.price, true);
+    const m = parsePrice(values.price_m, false);
+    const l = parsePrice(values.price_l, false);
     if (!name) { setStatus({ isError: true, text: 'Vui lòng nhập tên món.' }); return; }
-    if (values.price === '' || !Number.isInteger(price) || price < 0) { setStatus({ isError: true, text: 'Giá phải là số nguyên từ 0 trở lên.' }); return; }
+    if (s.error) { setStatus({ isError: true, text: 'Giá phải là số nguyên từ 0 trở lên.' }); return; }
+    if (m.error) { setStatus({ isError: true, text: 'Giá size M phải là số nguyên từ 0 trở lên, hoặc để trống.' }); return; }
+    if (l.error) { setStatus({ isError: true, text: 'Giá size L phải là số nguyên từ 0 trở lên, hoặc để trống.' }); return; }
 
     const body = {
       name,
       description: values.description.trim() || null,
-      price,
+      price: s.value,
+      price_m: m.value,
+      price_l: l.value,
       image_url: values.image_url.trim() || null,
       alt_text: values.alt_text.trim() || null,
       sort: Number(values.sort) || 0,
@@ -109,8 +129,16 @@ export default function MenuAdmin() {
           <input id="mn-desc" className={inputClass} maxLength={300} value={values.description} onChange={(e) => set('description', e.target.value)} />
         </div>
         <div className="mb-4">
-          <label htmlFor="mn-price" className="mb-1 block font-bold">Giá (đồng)</label>
+          <label htmlFor="mn-price" className="mb-1 block font-bold">Giá size S (đồng)</label>
           <input id="mn-price" type="number" min="0" step="1000" inputMode="numeric" className={inputClass} value={values.price} onChange={(e) => set('price', e.target.value)} />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="mn-price-m" className="mb-1 block font-bold">Giá size M (đồng, để trống nếu không bán)</label>
+          <input id="mn-price-m" type="number" min="0" step="1000" inputMode="numeric" className={inputClass} value={values.price_m} onChange={(e) => set('price_m', e.target.value)} />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="mn-price-l" className="mb-1 block font-bold">Giá size L (đồng, để trống nếu không bán)</label>
+          <input id="mn-price-l" type="number" min="0" step="1000" inputMode="numeric" className={inputClass} value={values.price_l} onChange={(e) => set('price_l', e.target.value)} />
         </div>
 
         <ImageField value={values.image_url} onChange={(url) => set('image_url', url)} onBusyChange={setUploading} />
@@ -154,7 +182,7 @@ export default function MenuAdmin() {
               <tr key={m.id} className="border-b border-bg-alt align-top">
                 <td className="px-3 py-2.5">{m.sort}</td>
                 <td className="px-3 py-2.5">{m.name}</td>
-                <td className="px-3 py-2.5">{Number(m.price).toLocaleString('vi-VN')}đ</td>
+                <td className="px-3 py-2.5">{formatPrices(m)}</td>
                 <td className="px-3 py-2.5">{m.available ? 'Đang bán' : 'Đã ẩn'}</td>
                 <td className="whitespace-nowrap px-3 py-2.5">
                   <button type="button" aria-label={`Sửa món ${m.name}`} onClick={() => startEdit(m)} className={`${outlineBtn} mr-2 border-primary text-primary`}>Sửa</button>

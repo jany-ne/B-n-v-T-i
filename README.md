@@ -20,7 +20,7 @@ Turnstile và Formspree, nên không đụng vào dữ liệu thật và không 
 ## Cấu hình Supabase
 
 Các file SQL trong `prompt3/` (chạy trong SQL Editor, thay `ADMIN_EMAIL` bằng email quản lý, **không commit email thật**):
-`supabase.sql`, `supabase-tables.sql`, `supabase-captcha.sql`, `supabase-menu.sql`, `supabase-storage.sql`, `supabase-orders.sql`.
+`supabase.sql`, `supabase-tables.sql`, `supabase-captcha.sql`, `supabase-menu.sql`, `supabase-storage.sql`, `supabase-orders.sql`, `supabase-menu-sizes.sql`.
 Mã Edge Function nằm ở `prompt3/supabase-function/` (`book`, `contact`, `chat`, `order`).
 
 ## Triển khai (GitHub Pages bằng GitHub Actions)

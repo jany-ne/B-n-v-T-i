@@ -47,7 +47,7 @@ export default function OrdersAdmin() {
         <table className="w-full border-collapse bg-surface shadow">
           <thead>
             <tr className="bg-bg-alt text-left">
-              {['Lúc đặt', 'Họ tên', 'Điện thoại', 'Món', 'SL', 'Tạm tính', 'Ghi chú'].map((h) => (
+              {['Lúc đặt', 'Họ tên', 'Điện thoại', 'Món', 'Size', 'SL', 'Tạm tính', 'Ghi chú'].map((h) => (
                 <th key={h} className="whitespace-nowrap px-3 py-2.5">{h}</th>
               ))}
               <th className="px-3 py-2.5"><span className="sr-only">Thao tác</span></th>
@@ -60,6 +60,7 @@ export default function OrdersAdmin() {
                 <td className="px-3 py-2.5">{o.name}</td>
                 <td className="px-3 py-2.5">{o.phone}</td>
                 <td className="px-3 py-2.5">{o.item_name}</td>
+                <td className="px-3 py-2.5">{o.size || 'S'}</td>
                 <td className="px-3 py-2.5">{o.quantity}</td>
                 <td className="px-3 py-2.5">{money(o.unit_price * o.quantity)}</td>
                 <td className="px-3 py-2.5">{o.note}</td>

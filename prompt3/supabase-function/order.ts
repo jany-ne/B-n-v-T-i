@@ -3,7 +3,7 @@
 // rồi tắt công tắc "Verify JWT" của function (giống function "book").
 // Dùng chung các secret đã có: TURNSTILE_SECRET_KEY, RESEND_API_KEY, NOTIFY_EMAIL.
 // SUPABASE_URL và SUPABASE_SERVICE_ROLE_KEY được Supabase tự cấp, không cần thêm.
-// Cần chạy prompt3/supabase-orders.sql trước khi hàm này lưu được đơn.
+// Cần chạy prompt3/supabase-orders.sql (và supabase-menu-sizes.sql nếu bảng đã có sẵn) trước khi hàm này lưu được đơn.
 
 // Chỉ các trang này được phép gọi hàm. localhost:5173 là địa chỉ khi bạn chạy "npm run dev" trên máy.
 const ALLOWED_ORIGINS = ['https://jany-ne.github.io', 'http://localhost:5173'];
@@ -35,6 +35,13 @@ function money(n: number) {
   return n.toLocaleString('vi-VN') + 'đ';
 }
 
+function priceForSize(row: { price?: unknown; price_m?: unknown; price_l?: unknown }, size: string) {
+  const raw = size === 'M' ? row.price_m : size === 'L' ? row.price_l : row.price;
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
 // Gửi email báo có đơn mới. Lỗi ở bước này không làm hỏng việc đặt món.
 async function notifyOwner(d: Record<string, unknown>) {
   const apiKey = Deno.env.get('RESEND_API_KEY');
@@ -43,7 +50,7 @@ async function notifyOwner(d: Record<string, unknown>) {
   const html = `<h2>Có đơn mua món mới</h2>
 <p><b>Họ tên:</b> ${esc(d.name)}<br>
 <b>Điện thoại:</b> ${esc(d.phone)}<br>
-<b>Món:</b> ${esc(d.itemName)} × ${esc(d.quantity)}<br>
+<b>Món:</b> ${esc(d.itemName)} size ${esc(d.size)} × ${esc(d.quantity)}<br>
 <b>Tạm tính:</b> ${esc(d.total)}<br>
 <b>Ghi chú:</b> ${esc(d.note || '(không có)')}</p>
 <p>Nhận tại quán, thanh toán khi lấy.</p>`;
@@ -98,26 +105,30 @@ Deno.serve(async (req) => {
   let itemName = String(o.item_name ?? '').trim();
   let unitPrice = Number(o.unit_price);
   let menuItemId: string | null = UUID.test(rawId) ? rawId : null;
+  const size = String(o.size ?? 'S').toUpperCase();
 
   const validShape =
     name.length >= 1 && name.length <= 100 &&
     /^(0|\+84)[0-9]{9}$/.test(phone) &&
-    Number.isInteger(quantity) && quantity >= 1 && quantity <= 20;
+    Number.isInteger(quantity) && quantity >= 1 && quantity <= 20 &&
+    (size === 'S' || size === 'M' || size === 'L');
   if (!validShape) return reply(req, 400, { error: 'invalid' });
 
   const url = Deno.env.get('SUPABASE_URL')!;
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
 
-  // 3. Nếu có mã món từ cơ sở dữ liệu thì lấy tên và giá thật, không tin giá phía khách.
+  // 3. Nếu có mã món từ cơ sở dữ liệu thì lấy tên và giá thật theo size, không tin giá phía khách.
   if (menuItemId) {
-    const t = await fetch(`${url}/rest/v1/menu_items?id=eq.${encodeURIComponent(menuItemId)}&select=name,price,available`, { headers });
+    const t = await fetch(`${url}/rest/v1/menu_items?id=eq.${encodeURIComponent(menuItemId)}&select=name,price,price_m,price_l,available`, { headers });
     const rows = await t.json();
     if (!Array.isArray(rows) || rows.length === 0 || !rows[0].available) {
       return reply(req, 400, { error: 'item' });
     }
+    const priced = priceForSize(rows[0], size);
+    if (priced == null) return reply(req, 400, { error: 'item' });
     itemName = String(rows[0].name);
-    unitPrice = Number(rows[0].price);
+    unitPrice = priced;
   } else if (
     itemName.length < 1 || itemName.length > 100 ||
     !Number.isInteger(unitPrice) || unitPrice < 0 || unitPrice > 10000000
@@ -130,10 +141,10 @@ Deno.serve(async (req) => {
     method: 'POST',
     headers: { ...headers, Prefer: 'return=minimal' },
     body: JSON.stringify({
-      name, phone, menu_item_id: menuItemId, item_name: itemName, unit_price: unitPrice, quantity, note,
+      name, phone, menu_item_id: menuItemId, item_name: itemName, unit_price: unitPrice, quantity, size, note,
     }),
   });
   if (!ins.ok) return reply(req, 400, { error: 'insert' });
-  await notifyOwner({ name, phone, itemName, quantity, note, total: money(unitPrice * quantity) });
+  await notifyOwner({ name, phone, itemName, quantity, size, note, total: money(unitPrice * quantity) });
   return reply(req, 200, { ok: true });
 });

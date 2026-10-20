@@ -8,11 +8,11 @@ const BOOKINGS = [
   { id: 'b-2', booking_date: '2031-01-02', booking_time: '12:30:00', name: 'Khách Hai', phone: '0900000000', guests: 4, note: null, restaurant_tables: { name: 'Bàn 5' } },
 ];
 const ORDERS = [
-  { id: 'o-1', created_at: '2031-01-15T10:30:00.000Z', name: 'Khách Món', phone: '0986187111', item_name: 'Latte', unit_price: 50000, quantity: 2, note: 'Ít đá' },
+  { id: 'o-1', created_at: '2031-01-15T10:30:00.000Z', name: 'Khách Món', phone: '0986187111', item_name: 'Latte', size: 'M', unit_price: 50000, quantity: 2, note: 'Ít đá' },
 ];
 const MENU = [
-  { id: 'm-1', name: 'Cà phê sữa', description: 'Đậm đà', price: 35000, image_url: 'images/ca-phe-sua.jpg', alt_text: 'Ly cà phê', sort: 1, available: true },
-  { id: 'm-2', name: 'Trà đào', description: null, price: 40000, image_url: null, alt_text: null, sort: 2, available: false },
+  { id: 'm-1', name: 'Cà phê sữa', description: 'Đậm đà', price: 35000, price_m: 40000, price_l: 45000, image_url: 'images/ca-phe-sua.jpg', alt_text: 'Ly cà phê', sort: 1, available: true },
+  { id: 'm-2', name: 'Trà đào', description: null, price: 40000, price_m: null, price_l: null, image_url: null, alt_text: null, sort: 2, available: false },
 ];
 const PNG = makePng();
 
@@ -69,6 +69,7 @@ test.describe('đăng nhập', () => {
     await expect(page.locator('section[aria-labelledby="bookings-title"] tbody tr')).toHaveCount(2);
     await expect(page.locator('section[aria-labelledby="orders-title"] tbody tr')).toHaveCount(1);
     await expect(orderRow(page, 'Khách Món')).toContainText('Latte');
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(4)).toHaveText('M');
     await expect(orderRow(page, 'Khách Món')).toContainText('100.000đ');
     await expect(bookingRow(page, 'Khách Một')).toContainText('01/01/2031');
     await expect(bookingRow(page, 'Khách Một')).toContainText('19:00');
@@ -171,10 +172,15 @@ test.describe('quản lý menu', () => {
     await page.fill('#mn-name', 'Sinh tố bơ');
     await page.fill('#mn-desc', 'Béo ngậy');
     await page.fill('#mn-price', '55000');
+    await page.fill('#mn-price-m', '60000');
+    await page.fill('#mn-price-l', '65000');
     await page.getByRole('button', { name: 'Thêm món' }).click();
     await expect(page.getByText('Đã thêm món.')).toBeVisible();
     const post = seen.menu.find((m) => m.method === 'POST');
-    expect(post.body).toMatchObject({ name: 'Sinh tố bơ', description: 'Béo ngậy', price: 55000, available: true, image_url: null });
+    expect(post.body).toMatchObject({
+      name: 'Sinh tố bơ', description: 'Béo ngậy', price: 55000, price_m: 60000, price_l: 65000,
+      available: true, image_url: null,
+    });
   });
 
   test('thiếu tên hoặc giá sai thì báo lỗi và không gửi', async ({ page }) => {
@@ -195,6 +201,8 @@ test.describe('quản lý menu', () => {
     await menuRow(page, 'Trà đào').getByRole('button', { name: /Sửa/ }).click();
     await expect(page.locator('#mn-name')).toHaveValue('Trà đào');
     await expect(page.locator('#mn-price')).toHaveValue('40000');
+    await expect(page.locator('#mn-price-m')).toHaveValue('');
+    await expect(page.locator('#mn-price-l')).toHaveValue('');
     await expect(page.locator('#mn-available')).not.toBeChecked();
     await expect(page.getByRole('button', { name: 'Lưu thay đổi' })).toBeVisible();
     await page.fill('#mn-price', '42000');
@@ -203,7 +211,7 @@ test.describe('quản lý menu', () => {
     await expect(page.getByText('Đã lưu thay đổi.')).toBeVisible();
     const patch = seen.menu.find((m) => m.method === 'PATCH');
     expect(patch.url).toContain('id=eq.m-2');
-    expect(patch.body).toMatchObject({ name: 'Trà đào', price: 42000, available: true });
+    expect(patch.body).toMatchObject({ name: 'Trà đào', price: 42000, price_m: null, price_l: null, available: true });
   });
 
   test('xóa món gọi đúng yêu cầu DELETE', async ({ page }) => {

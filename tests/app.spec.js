@@ -4,7 +4,7 @@ const { mockSupabase, mockTurnstile } = require('./helpers');
 
 const APP = 'http://localhost:8081/';
 const MENU = [
-  { id: 'm1', name: 'Món thử A', description: 'Mô tả A', price: 45000, image_url: null, alt_text: null, sort: 1, available: true },
+  { id: 'm1', name: 'Món thử A', description: 'Mô tả A', price: 45000, price_m: 50000, price_l: 55000, image_url: null, alt_text: null, sort: 1, available: true },
   { id: 'm2', name: 'Món thử B', description: null, price: 1250000, image_url: null, alt_text: null, sort: 2, available: true },
 ];
 
@@ -19,6 +19,7 @@ test('trang hiện đủ các phần và menu đọc từ cơ sở dữ liệu',
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Một tách cà phê, một ngày tươi mới');
   await expect(page.locator('#menu article')).toHaveCount(2);
   await expect(page.locator('#menu article').first()).toContainText('45.000đ');
+  await expect(page.locator('#menu article').first()).not.toContainText('M 50.000đ');
   await expect(page.locator('#menu article').nth(1)).toContainText('1.250.000đ');
   await expect(page.getByRole('link', { name: 'Mua ngay Món thử A' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Mua ngay Món thử B' })).toBeVisible();

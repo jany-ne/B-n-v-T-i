@@ -12,6 +12,7 @@ create table if not exists public.orders (
   item_name    text not null check (char_length(item_name) between 1 and 100),
   unit_price   int  not null check (unit_price >= 0),
   quantity     int  not null check (quantity between 1 and 20),
+  size         text not null default 'S' check (size in ('S', 'M', 'L')),
   note         text check (char_length(note) <= 500),
   status       text not null default 'new' check (status in ('new', 'done', 'cancelled'))
 );

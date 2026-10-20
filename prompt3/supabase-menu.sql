@@ -7,6 +7,8 @@ create table if not exists public.menu_items (
   name        text not null check (char_length(name) between 1 and 100),
   description text check (char_length(description) <= 300),
   price       int  not null check (price >= 0),
+  price_m     int  check (price_m is null or price_m >= 0),
+  price_l     int  check (price_l is null or price_l >= 0),
   image_url   text check (char_length(image_url) <= 500),
   alt_text    text check (char_length(alt_text) <= 200),
   sort        int  not null default 0,

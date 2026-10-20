@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/supabase.js';
 import { SITE } from '../data/site.js';
-import { FALLBACK_MENU, money } from '../data/menu.js';
+import { FALLBACK_MENU, formatPrices, money, priceOf } from '../data/menu.js';
+
+const SIZE_CODES = ['S', 'M', 'L'];
 import { asset } from '../lib/asset.js';
 import { useTurnstile } from '../hooks/useTurnstile.js';
 import { validateName, validatePhone } from '../lib/validators.js';
@@ -56,7 +58,7 @@ export default function OrderPage() {
             <Link to="/" state={{ section: 'menu' }} className="font-bold text-primary underline">Xem menu</Link>
           </p>
         ) : (
-          <OrderForm item={item} />
+          <OrderForm key={item.id} item={item} />
         )}
       </div>
     </section>
@@ -66,10 +68,12 @@ export default function OrderPage() {
 function OrderForm({ item }) {
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState({});
+  const [size, setSize] = useState('S');
   const [qty, setQty] = useState(1);
   const [qtyError, setQtyError] = useState('');
   const [status, setStatus] = useState(null);
   const [sending, setSending] = useState(false);
+  const unitPrice = priceOf(item, size) ?? Number(item.price);
   const { ref: captchaRef, token, error: captchaError, setError: setCaptchaError, reset } = useTurnstile();
   const formRef = useRef(null);
 
@@ -104,7 +108,8 @@ function OrderForm({ item }) {
       phone: values.phone.replace(/[\s.\-()]/g, ''),
       menu_item_id: item.id,
       item_name: item.name,
-      unit_price: Number(item.price),
+      size,
+      unit_price: unitPrice,
       quantity: q,
       note: values.note.trim() || null,
     };
@@ -125,6 +130,7 @@ function OrderForm({ item }) {
         setValues(EMPTY);
         setErrors({});
         setQty(1);
+        setSize('S');
         setStatus({ isError: false, text: `Cảm ơn bạn! Quán đã nhận đơn và sẽ liên hệ xác nhận qua số ${order.phone}. Nhận món tại quán, thanh toán khi lấy.` });
       }
     } catch {
@@ -172,9 +178,36 @@ function OrderForm({ item }) {
         <div className="min-w-0 py-3 pr-4">
           <h2 className="text-xl font-bold">{item.name}</h2>
           {item.description && <p className="text-muted">{item.description}</p>}
-          <p className="mt-1 font-bold text-primary">{money(item.price)}</p>
         </div>
       </div>
+
+      <fieldset className="m-0 mb-4 border-0 p-0">
+        <legend className="mb-1.5 p-0 font-bold">Size</legend>
+        <div className="flex flex-wrap gap-6">
+          {SIZE_CODES.map((code) => {
+            const available = priceOf(item, code) != null;
+            return (
+              <label
+                key={code}
+                className={`flex items-center gap-2 ${available ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+              >
+                <input
+                  type="radio"
+                  name="size"
+                  value={code}
+                  checked={size === code}
+                  disabled={!available}
+                  onChange={() => setSize(code)}
+                  aria-label={`Size ${code}`}
+                  className="h-4 w-4 accent-[var(--color-primary)]"
+                />
+                {code}
+              </label>
+            );
+          })}
+        </div>
+        <p className="mt-3 font-bold text-primary">{money(unitPrice)}</p>
+      </fieldset>
 
       <div className="mb-4">
         <label htmlFor="od-qty" className="mb-1 block font-bold">Số lượng</label>
@@ -200,7 +233,7 @@ function OrderForm({ item }) {
       </div>
 
       <p className="mb-4 font-bold">
-        Tạm tính: <span className="text-primary">{money(item.price * clampQty(qty))}</span>
+        Tạm tính: <span className="text-primary">{money(unitPrice * clampQty(qty))}</span>
       </p>
 
       {field('name', 'Họ tên', (p) => <input type="text" autoComplete="name" maxLength={100} {...p} />)}
@@ -238,7 +271,7 @@ function ItemPicker({ items }) {
               className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-bg-alt"
             >
               <span className="font-bold">{it.name}</span>
-              <span className="text-primary">{money(it.price)}</span>
+              <span className="text-primary">{formatPrices(it)}</span>
             </Link>
           </li>
         ))}

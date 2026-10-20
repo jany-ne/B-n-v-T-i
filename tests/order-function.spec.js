@@ -9,14 +9,15 @@ const js = esbuild.transformSync(fs.readFileSync(path.join(__dirname, '../prompt
 const ITEM_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 const GOOD = {
   name: 'Nguyễn Văn A', phone: '0986187111', menu_item_id: 'm1',
-  item_name: 'Món thử A', unit_price: 45000, quantity: 2, note: 'Ít đá',
+  item_name: 'Món thử A', unit_price: 45000, quantity: 2, size: 'S', note: 'Ít đá',
 };
 const GOOD_UUID = {
   name: 'Nguyễn Văn A', phone: '0986187111', menu_item_id: ITEM_ID,
-  item_name: 'giá giả', unit_price: 1, quantity: 2, note: 'Ít đá',
+  item_name: 'giá giả', unit_price: 1, quantity: 2, size: 'S', note: 'Ít đá',
 };
+const LATTE = { name: 'Latte', price: 50000, price_m: 55000, price_l: 60000, available: true };
 
-function setup({ env, turnstileOk = true, items = [{ name: 'Latte', price: 50000, available: true }], insertStatus = 201, resendStatus = 200 } = {}) {
+function setup({ env, turnstileOk = true, items = [LATTE], insertStatus = 201, resendStatus = 200 } = {}) {
   const calls = [];
   const fakeFetch = async (url, init = {}) => {
     const u = String(url);
@@ -71,6 +72,7 @@ for (const [ten, thayDoi] of [
   ['số lượng quá 20', { quantity: 21 }],
   ['thiếu tên món (không phải uuid)', { menu_item_id: '', item_name: '  ', unit_price: 45000 }],
   ['giá âm', { menu_item_id: '', unit_price: -1 }],
+  ['size không hợp lệ', { size: 'XL' }],
 ]) {
   test(`dữ liệu không hợp lệ (${ten}) bị từ chối`, async () => {
     const { call, calls } = setup();
@@ -89,8 +91,15 @@ test('món uuid không tồn tại thì từ chối', async () => {
 });
 
 test('món uuid đang ẩn thì từ chối', async () => {
-  const { call } = setup({ items: [{ name: 'Latte', price: 50000, available: false }] });
+  const { call } = setup({ items: [{ ...LATTE, available: false }] });
   const res = await call({ token: 't', order: GOOD_UUID });
+  expect(res.status).toBe(400);
+  expect((await res.json()).error).toBe('item');
+});
+
+test('size M/L không có giá thì từ chối', async () => {
+  const { call } = setup({ items: [{ name: 'Latte', price: 50000, price_m: null, price_l: null, available: true }] });
+  const res = await call({ token: 't', order: { ...GOOD_UUID, size: 'M' } });
   expect(res.status).toBe(400);
   expect((await res.json()).error).toBe('item');
 });
@@ -103,7 +112,7 @@ test('đơn không phải uuid được lưu bằng giá khách gửi', async ()
   expect(insert.init.headers.Authorization).toBe('Bearer service-key');
   expect(JSON.parse(insert.init.body)).toEqual({
     name: 'Nguyễn Văn A', phone: '0986187111', menu_item_id: null,
-    item_name: 'Món thử A', unit_price: 45000, quantity: 2, note: 'Ít đá',
+    item_name: 'Món thử A', unit_price: 45000, quantity: 2, size: 'S', note: 'Ít đá',
   });
 });
 
@@ -113,7 +122,16 @@ test('đơn uuid lấy tên và giá từ cơ sở dữ liệu, không tin giá 
   expect(res.status).toBe(200);
   expect(JSON.parse(calls.find((c) => c.url.endsWith('/rest/v1/orders')).init.body)).toEqual({
     name: 'Nguyễn Văn A', phone: '0986187111', menu_item_id: ITEM_ID,
-    item_name: 'Latte', unit_price: 50000, quantity: 2, note: 'Ít đá',
+    item_name: 'Latte', unit_price: 50000, quantity: 2, size: 'S', note: 'Ít đá',
+  });
+});
+
+test('đơn uuid size M lấy giá M từ cơ sở dữ liệu', async () => {
+  const { call, calls } = setup();
+  const res = await call({ token: 't', order: { ...GOOD_UUID, size: 'M', unit_price: 1 } });
+  expect(res.status).toBe(200);
+  expect(JSON.parse(calls.find((c) => c.url.endsWith('/rest/v1/orders')).init.body)).toMatchObject({
+    item_name: 'Latte', unit_price: 55000, size: 'M',
   });
 });
 
@@ -138,6 +156,7 @@ test('có cấu hình Resend thì gửi email thông báo cho chủ quán', asyn
   expect(sent.to).toEqual(['chu@quan.test']);
   expect(sent.subject).toContain('Nguyễn Văn A');
   expect(sent.html).toContain('Món thử A');
+  expect(sent.html).toContain('size S');
   expect(sent.html).toContain('90.000đ');
 });
 

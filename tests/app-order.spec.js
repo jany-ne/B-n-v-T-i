@@ -4,8 +4,8 @@ const { mockSupabase, mockTurnstile } = require('./helpers');
 
 const APP = 'http://localhost:8081/';
 const MENU = [
-  { id: 'm1', name: 'Món thử A', description: 'Mô tả A', price: 45000, image_url: null, alt_text: null, sort: 1, available: true },
-  { id: 'm2', name: 'Món thử B', description: null, price: 1250000, image_url: null, alt_text: null, sort: 2, available: true },
+  { id: 'm1', name: 'Món thử A', description: 'Mô tả A', price: 45000, price_m: 50000, price_l: 55000, image_url: null, alt_text: null, sort: 1, available: true },
+  { id: 'm2', name: 'Món thử B', description: null, price: 1250000, price_m: null, price_l: null, image_url: null, alt_text: null, sort: 2, available: true },
 ];
 
 test.beforeEach(async ({ page }) => {
@@ -47,6 +47,22 @@ test.describe('từ menu', () => {
     await openOrder(page);
     await page.fill('#od-qty', '2');
     await expect(page.getByText('Tạm tính:')).toContainText('90.000đ');
+  });
+
+  test('chọn size M thì tạm tính theo giá M', async ({ page }) => {
+    await openOrder(page);
+    await page.getByRole('radio', { name: 'Size M' }).click();
+    await expect(page.getByText('Tạm tính:')).toContainText('50.000đ');
+    await page.fill('#od-qty', '2');
+    await expect(page.getByText('Tạm tính:')).toContainText('100.000đ');
+  });
+
+  test('món chỉ có size S thì M và L bị tắt', async ({ page }) => {
+    await page.goto(APP + 'dat-mon?mon=m2');
+    await expect(page.getByRole('heading', { level: 2, name: 'Món thử B' })).toBeVisible();
+    await expect(page.getByRole('radio', { name: 'Size S' })).toBeChecked();
+    await expect(page.getByRole('radio', { name: 'Size M' })).toBeDisabled();
+    await expect(page.getByRole('radio', { name: 'Size L' })).toBeDisabled();
   });
 
   test('không chọn món thì hiện danh sách để chọn', async ({ page }) => {
@@ -92,15 +108,25 @@ test.describe('gửi đơn', () => {
     await page.fill('#od-qty', '2');
     await page.fill('#od-note', 'Ít đá');
     await submit(page).click();
+    await expect(page.getByRole('status')).toContainText('đã nhận đơn');
     expect(body.token).toBe('token-gia');
     expect(body.order).toEqual({
       name: 'Nguyễn Văn A', phone: '0986187111', menu_item_id: 'm1',
-      item_name: 'Món thử A', unit_price: 45000, quantity: 2, note: 'Ít đá',
+      item_name: 'Món thử A', size: 'S', unit_price: 45000, quantity: 2, note: 'Ít đá',
     });
-    await expect(page.getByRole('status')).toContainText('đã nhận đơn');
     await expect(page.getByRole('status')).toContainText('0986187111');
     await expect(page.locator('#od-name')).toHaveValue('');
     await expect(page.locator('#od-qty')).toHaveValue('1');
+  });
+
+  test('chọn size M thì gửi giá M', async ({ page }) => {
+    let body;
+    await openOrder(page, (r) => { body = r.postDataJSON(); return { status: 200, body: { ok: true } }; });
+    await fillValid(page);
+    await page.getByRole('radio', { name: 'Size M' }).click();
+    await submit(page).click();
+    await expect(page.getByRole('status')).toContainText('đã nhận đơn');
+    expect(body.order).toMatchObject({ size: 'M', unit_price: 50000, item_name: 'Món thử A' });
   });
 
   test('chưa xác minh captcha thì không gửi và báo lỗi', async ({ page }) => {
