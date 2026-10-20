@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { api } from '../lib/supabase.js';
 
 const QUICK = ['Menu có gì?', 'Giờ mở cửa?', 'Địa chỉ quán?', 'Đặt bàn như thế nào?'];
 const GREETING = 'Chào bạn! Mình có thể giúp về menu, giá, giờ mở cửa, địa chỉ và đặt bàn.';
@@ -45,11 +45,7 @@ export default function Chatbot() {
 
     let reply = FAIL;
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
-        method: 'POST',
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-      });
+      const res = await api('/functions/v1/chat', { method: 'POST', body: JSON.stringify({ message: text }) });
       if (res.ok) reply = (await res.json()).reply || FAIL;
     } catch {
       // giữ câu xin lỗi mặc định

@@ -1,23 +1,10 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { useMenu } from '../hooks/useMenu.js';
 import { asset } from '../lib/asset.js';
-import { FALLBACK_MENU, money } from '../data/menu.js';
+import { money } from '../data/menu.js';
 
 export default function Menu() {
-  const [items, setItems] = useState(FALLBACK_MENU);
-
-  useEffect(() => {
-    const controller = new AbortController(); // để hủy yêu cầu nếu component biến mất
-    fetch(`${SUPABASE_URL}/rest/v1/menu_items?select=*&available=eq.true&order=sort.asc`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-      signal: controller.signal,
-    })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
-      .then((list) => { if (list.length) setItems(list); })
-      .catch(() => {}); // lỗi thì giữ menu dự phòng
-    return () => controller.abort();
-  }, []);
+  const { items } = useMenu();
 
   return (
     <section id="menu" className="py-12 md:py-16">

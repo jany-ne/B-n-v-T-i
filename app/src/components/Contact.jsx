@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { api } from '../lib/supabase.js';
 import { useTurnstile } from '../hooks/useTurnstile.js';
 import { SITE } from '../data/site.js';
 import { validateName, validatePhone } from '../lib/validators.js';
@@ -62,11 +62,7 @@ export default function Contact() {
 
     setSending(true);
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/contact`, {
-        method: 'POST',
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, contact: values }),
-      });
+      const res = await api('/functions/v1/contact', { method: 'POST', body: JSON.stringify({ token, contact: values }) });
       if (res.status === 400) {
         const r = await res.json().catch(() => ({}));
         setStatus({ isError: true, text: r.error === 'captcha' ? 'Xác minh không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.' : 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.' });

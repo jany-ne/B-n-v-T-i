@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { api } from '../lib/supabase.js';
+import { useMenu } from '../hooks/useMenu.js';
 import { SITE } from '../data/site.js';
-import { FALLBACK_MENU, formatPrices, money, priceOf } from '../data/menu.js';
+import { formatPrices, money, priceOf } from '../data/menu.js';
 import { asset } from '../lib/asset.js';
 import { useCart } from '../context/CartContext.jsx';
 
@@ -19,18 +19,9 @@ function clampQty(n) {
 export default function OrderPage() {
   const [params] = useSearchParams();
   const mon = params.get('mon') || '';
-  const [items, setItems] = useState(null); // null = đang tải
+  const { items, status } = useMenu();
 
-  useEffect(() => {
-    const controller = new AbortController();
-    api('/rest/v1/menu_items?select=*&available=eq.true&order=sort.asc', { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
-      .then((list) => { setItems(list.length ? list : FALLBACK_MENU); })
-      .catch((e) => { if (e.name !== 'AbortError') setItems(FALLBACK_MENU); });
-    return () => controller.abort();
-  }, []);
-
-  const item = items && mon ? items.find((it) => String(it.id) === mon) : null;
+  const item = mon ? items.find((it) => String(it.id) === mon) : null;
 
   return (
     <section className="py-12 md:py-16">
@@ -38,7 +29,7 @@ export default function OrderPage() {
         <h1 className="mb-3 text-center text-3xl font-bold">Đặt món</h1>
         <p className="mb-7 text-center text-muted">{SITE.hours}. Chọn món vào giỏ, nhận tại quán, thanh toán khi lấy.</p>
 
-        {items === null ? (
+        {status === 'loading' ? (
           <p className="text-center text-muted">Đang tải menu...</p>
         ) : !mon ? (
           <ItemPicker items={items} />

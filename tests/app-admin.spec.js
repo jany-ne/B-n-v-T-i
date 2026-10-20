@@ -28,7 +28,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 // Dựng các địa chỉ Supabase giả và ghi lại các yêu cầu để test kiểm tra.
-async function setup(page, { loginOk = true, bookingsStatus = 200, storageStatus = 200 } = {}) {
+async function setup(page, { loginOk = true, bookingsStatus = 200, storageStatus = 200, orderPatchStatus = 200 } = {}) {
   const seen = { login: [], bookings: [], orders: [], menu: [], upload: [] };
   await mockSupabase(page, '/auth/v1/token*', (r) => {
     seen.login.push(r.postDataJSON());
@@ -40,8 +40,9 @@ async function setup(page, { loginOk = true, bookingsStatus = 200, storageStatus
     return { status: 200, body: [] };
   });
   await mockSupabase(page, '/rest/v1/orders*', (r) => {
-    seen.orders.push({ method: r.method(), url: r.url() });
+    seen.orders.push({ method: r.method(), url: r.url(), body: r.method() === 'PATCH' ? r.postDataJSON() : null });
     if (r.method() === 'GET') return { status: 200, body: ORDERS };
+    if (r.method() === 'PATCH') return { status: orderPatchStatus, body: [] };
     return { status: 200, body: [] };
   });
   await mockSupabase(page, '/rest/v1/menu_items*', (r) => {
@@ -164,6 +165,57 @@ test.describe('đơn đặt bàn', () => {
 });
 
 test.describe('đơn món', () => {
+  test('đơn chưa có trạng thái được coi là Mới', async ({ page }) => {
+    await setup(page);
+    await login(page);
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(6)).toHaveText('Mới');
+    await expect(orderRow(page, 'Khách Món').getByRole('button', { name: /Đánh dấu đã xong/ })).toBeVisible();
+    await expect(orderRow(page, 'Khách Món').getByRole('button', { name: /Hủy đơn/ })).toBeVisible();
+  });
+
+  test('bấm Xong gửi PATCH đúng, đổi trạng thái và nút', async ({ page }) => {
+    const seen = await setup(page);
+    await login(page);
+    await orderRow(page, 'Khách Món').getByRole('button', { name: /Đánh dấu đã xong/ }).click();
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(6)).toHaveText('Đã xong');
+    await expect(page.getByText('Đã chuyển đơn của Khách Món sang "Đã xong".')).toBeVisible();
+    const patch = seen.orders.find((o) => o.method === 'PATCH');
+    expect(patch.url).toContain('id=eq.o-1');
+    expect(patch.body).toEqual({ status: 'done' });
+    await expect(orderRow(page, 'Khách Món').getByRole('button', { name: /Mở lại/ })).toBeVisible();
+    await expect(orderRow(page, 'Khách Món').getByRole('button', { name: /Đánh dấu đã xong/ })).toHaveCount(0);
+  });
+
+  test('hủy đơn rồi mở lại', async ({ page }) => {
+    const seen = await setup(page);
+    await login(page);
+    await orderRow(page, 'Khách Món').getByRole('button', { name: /Hủy đơn/ }).click();
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(6)).toHaveText('Đã hủy');
+    await orderRow(page, 'Khách Món').getByRole('button', { name: /Mở lại/ }).click();
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(6)).toHaveText('Mới');
+    expect(seen.orders.filter((o) => o.method === 'PATCH').map((o) => o.body.status)).toEqual(['cancelled', 'new']);
+  });
+
+  test('máy chủ từ chối thì trả về trạng thái cũ và báo lỗi', async ({ page }) => {
+    await setup(page, { orderPatchStatus: 403 });
+    await login(page);
+    await orderRow(page, 'Khách Món').getByRole('button', { name: /Đánh dấu đã xong/ }).click();
+    await expect(page.getByText('Không đổi được trạng thái đơn của Khách Món. Đã trả về "Mới".')).toBeVisible();
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(6)).toHaveText('Mới');
+    await expect(orderRow(page, 'Khách Món').getByRole('button', { name: /Đánh dấu đã xong/ })).toBeEnabled();
+  });
+
+  test('lọc theo trạng thái ẩn các đơn không khớp', async ({ page }) => {
+    await setup(page);
+    await login(page);
+    await orderRow(page, 'Khách Món').getByRole('button', { name: /Đánh dấu đã xong/ }).click();
+    await page.getByLabel('Lọc theo trạng thái').selectOption('new');
+    await expect(page.locator('section[aria-labelledby="orders-title"] tbody tr')).toHaveCount(0);
+    await page.getByLabel('Lọc theo trạng thái').selectOption('done');
+    await expect(page.locator('section[aria-labelledby="orders-title"] tbody tr')).toHaveCount(1);
+    await expect(page.getByText('Có 1 đơn "Đã xong" trong 1 đơn món.')).toBeVisible();
+  });
+
   test('xóa một đơn món gọi đúng yêu cầu DELETE', async ({ page }) => {
     const seen = await setup(page);
     await login(page);

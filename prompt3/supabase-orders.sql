@@ -1,5 +1,5 @@
 -- Đơn mua món (giỏ hàng nhiều món). Chạy trong Supabase: SQL Editor > New query > dán > Run.
--- Trước khi chạy, thay ADMIN_EMAIL (4 chỗ, dùng Tìm và Thay thế tất cả) bằng email tài khoản quản lý của bạn.
+-- Trước khi chạy, thay ADMIN_EMAIL (6 chỗ, dùng Tìm và Thay thế tất cả) bằng email tài khoản quản lý của bạn.
 -- Đừng commit bản đã điền email thật lên GitHub.
 -- Cần có bảng menu_items (đã chạy supabase-menu.sql) trước file này.
 -- Chạy được cả khi chưa có bảng nào lẫn khi đã có bảng orders kiểu cũ (mỗi đơn một món):
@@ -70,6 +70,14 @@ create policy "Quan ly xem don mon"
   on public.orders for select
   to authenticated
   using ((auth.jwt() ->> 'email') = 'ADMIN_EMAIL');
+
+-- Quản lý đổi trạng thái đơn (new, done, cancelled). Ràng buộc check của cột status vẫn áp dụng.
+drop policy if exists "Quan ly sua don mon" on public.orders;
+create policy "Quan ly sua don mon"
+  on public.orders for update
+  to authenticated
+  using ((auth.jwt() ->> 'email') = 'ADMIN_EMAIL')
+  with check ((auth.jwt() ->> 'email') = 'ADMIN_EMAIL');
 
 drop policy if exists "Quan ly xoa don mon" on public.orders;
 create policy "Quan ly xoa don mon"

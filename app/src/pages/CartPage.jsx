@@ -4,6 +4,7 @@ import { api } from '../lib/supabase.js';
 import { SITE } from '../data/site.js';
 import { money } from '../data/menu.js';
 import { useCart } from '../context/CartContext.jsx';
+import { useMenu } from '../hooks/useMenu.js';
 import { useTurnstile } from '../hooks/useTurnstile.js';
 import { validateName, validatePhone } from '../lib/validators.js';
 
@@ -29,15 +30,11 @@ export default function CartPage() {
   const hasUnavailable = lines.some((l) => l.unavailable);
 
   // Đối chiếu giỏ với menu mới nhất: cập nhật giá, đánh dấu món không còn bán.
-  // Nếu không tải được menu thì giữ nguyên giỏ (máy chủ vẫn kiểm tra lại giá khi đặt).
+  // Chỉ làm khi lấy được menu thật; nếu không thì giữ nguyên giỏ (máy chủ vẫn kiểm tra lại giá khi đặt).
+  const { items: menu, status: menuStatus } = useMenu();
   useEffect(() => {
-    const controller = new AbortController();
-    api('/rest/v1/menu_items?select=*&available=eq.true&order=sort.asc', { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
-      .then((list) => { if (list.length) sync(list); })
-      .catch(() => {});
-    return () => controller.abort();
-  }, [sync]);
+    if (menuStatus === 'ready') sync(menu);
+  }, [menuStatus, menu, sync]);
 
   function validate(name, value) {
     const msg = RULES[name](value);
