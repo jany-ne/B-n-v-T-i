@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { NAV } from '../data/site.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
 import NavItemLink from './NavItemLink.jsx';
 
 
@@ -9,6 +10,7 @@ export default function Header() {
   // useState: biến "nhớ" trạng thái. Đổi giá trị thì React tự vẽ lại giao diện.
   const [open, setOpen] = useState(false);
   const { token, logout } = useAuth();
+  const { count } = useCart();
 
   // useEffect: chạy một việc phụ (ở đây là lắng nghe phím Escape) khi component xuất hiện.
   useEffect(() => {
@@ -46,6 +48,11 @@ export default function Header() {
                 <NavItemLink item={l} className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)} />
               </li>
             ))}
+            <li>
+              <Link to="/gio-hang" className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)}>
+                Giỏ hàng{count > 0 && ` (${count})`}
+              </Link>
+            </li>
             {token && (
               <li>
                 <Link to="/quan-ly" className="block px-4 py-3 hover:underline lg:px-0" onClick={() => setOpen(false)}>Quản lý</Link>

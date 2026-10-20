@@ -45,7 +45,7 @@ export default function Menu() {
                     to={`/dat-mon?mon=${encodeURIComponent(it.id)}`}
                     className="rounded-md bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:brightness-110"
                   >
-                    Mua ngay<span className="sr-only"> {it.name}</span>
+                    Thêm vào giỏ<span className="sr-only"> {it.name}</span>
                   </Link>
                 </div>
               </div>

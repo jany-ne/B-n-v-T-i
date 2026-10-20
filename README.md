@@ -21,6 +21,7 @@ Turnstile và Formspree, nên không đụng vào dữ liệu thật và không 
 
 Các file SQL trong `prompt3/` (chạy trong SQL Editor, thay `ADMIN_EMAIL` bằng email quản lý, **không commit email thật**):
 `supabase.sql`, `supabase-tables.sql`, `supabase-captcha.sql`, `supabase-menu.sql`, `supabase-storage.sql`, `supabase-orders.sql`, `supabase-menu-sizes.sql`.
+Đơn mua món có nhiều món: bảng `orders` (người đặt) và `order_items` (từng dòng món). `supabase-orders.sql` chạy được cả khi đã có bảng `orders` kiểu cũ (mỗi đơn một món): đơn cũ được chuyển sang `order_items`. Sau khi chạy, deploy lại Edge Function `order`.
 Mã Edge Function nằm ở `prompt3/supabase-function/` (`book`, `contact`, `chat`, `order`).
 
 ## Triển khai (GitHub Pages bằng GitHub Actions)

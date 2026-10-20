@@ -8,7 +8,13 @@ const BOOKINGS = [
   { id: 'b-2', booking_date: '2031-01-02', booking_time: '12:30:00', name: 'Khách Hai', phone: '0900000000', guests: 4, note: null, restaurant_tables: { name: 'Bàn 5' } },
 ];
 const ORDERS = [
-  { id: 'o-1', created_at: '2031-01-15T10:30:00.000Z', name: 'Khách Món', phone: '0986187111', item_name: 'Latte', size: 'M', unit_price: 50000, quantity: 2, note: 'Ít đá' },
+  {
+    id: 'o-1', created_at: '2031-01-15T10:30:00.000Z', name: 'Khách Món', phone: '0986187111', note: 'Ít đá',
+    order_items: [
+      { id: 'i-1', item_name: 'Latte', size: 'M', unit_price: 50000, quantity: 2 },
+      { id: 'i-2', item_name: 'Trà đào', size: 'S', unit_price: 40000, quantity: 1 },
+    ],
+  },
 ];
 const MENU = [
   { id: 'm-1', name: 'Cà phê sữa', description: 'Đậm đà', price: 35000, price_m: 40000, price_l: 45000, image_url: 'images/ca-phe-sua.jpg', alt_text: 'Ly cà phê', sort: 1, available: true },
@@ -68,9 +74,10 @@ test.describe('đăng nhập', () => {
     expect(seen.login[0]).toEqual({ email: 'chu@quan.test', password: 'mat-khau' });
     await expect(page.locator('section[aria-labelledby="bookings-title"] tbody tr')).toHaveCount(2);
     await expect(page.locator('section[aria-labelledby="orders-title"] tbody tr')).toHaveCount(1);
-    await expect(orderRow(page, 'Khách Món')).toContainText('Latte');
-    await expect(orderRow(page, 'Khách Món').locator('td').nth(4)).toHaveText('M');
-    await expect(orderRow(page, 'Khách Món')).toContainText('100.000đ');
+    await expect(orderRow(page, 'Khách Món')).toContainText('Latte (size M) × 2');
+    await expect(orderRow(page, 'Khách Món')).toContainText('Trà đào (size S) × 1');
+    await expect(orderRow(page, 'Khách Món').locator('td').nth(4)).toHaveText('140.000đ');
+    expect(seen.orders.find((o) => o.method === 'GET').url).toContain('order_items(*)');
     await expect(bookingRow(page, 'Khách Một')).toContainText('01/01/2031');
     await expect(bookingRow(page, 'Khách Một')).toContainText('19:00');
     await expect(bookingRow(page, 'Khách Một')).toContainText('Bàn 2:');

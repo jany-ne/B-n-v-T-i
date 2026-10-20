@@ -21,8 +21,8 @@ test('trang hiện đủ các phần và menu đọc từ cơ sở dữ liệu',
   await expect(page.locator('#menu article').first()).toContainText('45.000đ');
   await expect(page.locator('#menu article').first()).not.toContainText('M 50.000đ');
   await expect(page.locator('#menu article').nth(1)).toContainText('1.250.000đ');
-  await expect(page.getByRole('link', { name: 'Mua ngay Món thử A' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Mua ngay Món thử B' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Thêm vào giỏ Món thử A' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Thêm vào giỏ Món thử B' })).toBeVisible();
   await expect(page.locator('#danh-gia figure')).toHaveCount(3);
   await expect(page.locator('#danh-gia [role="img"]').last()).toHaveAttribute('aria-label', '4 trên 5 sao');
   await expect(page.locator('#lien-he')).toContainText('Dương Bá Trạc');
@@ -198,5 +198,5 @@ test('chân trang có liên kết nhanh, gọi điện, Zalo, Facebook', async (
 test('menu trên cùng có mục Đặt bàn theo đúng thứ tự', async ({ page }) => {
   await mockSupabase(page, '/rest/v1/menu_items*');
   await page.goto(APP);
-  await expect(page.locator('#site-nav a')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ', 'Login']);
+  await expect(page.locator('#site-nav a')).toHaveText(['Trang chủ', 'Menu', 'Đặt bàn', 'Đánh giá', 'Liên hệ', 'Giỏ hàng', 'Login']);
 });

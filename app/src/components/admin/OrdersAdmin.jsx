@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { money } from '../../data/menu.js';
 
+const orderTotal = (o) => (o.order_items ?? []).reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
+
 const formatWhen = (iso) => {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
@@ -16,13 +18,13 @@ export default function OrdersAdmin() {
 
   const load = useCallback(async () => {
     try {
-      const res = await request('/rest/v1/orders?select=*&order=created_at.desc');
+      const res = await request('/rest/v1/orders?select=*,order_items(*)&order=created_at.desc');
       if (!res.ok) throw new Error(res.status);
       const list = await res.json();
       setOrders(list);
       setMessage(list.length ? `Có ${list.length} đơn món.` : 'Chưa có đơn món nào.');
     } catch (e) {
-      if (e.message !== 'expired') setMessage('Không tải được danh sách đơn món. Bạn đã chạy supabase-orders.sql chưa?');
+      if (e.message !== 'expired') setMessage('Không tải được danh sách đơn món. Bạn đã chạy supabase-orders.sql (bản mới có order_items) chưa?');
     }
   }, [request]);
 
@@ -47,7 +49,7 @@ export default function OrdersAdmin() {
         <table className="w-full border-collapse bg-surface shadow">
           <thead>
             <tr className="bg-bg-alt text-left">
-              {['Lúc đặt', 'Họ tên', 'Điện thoại', 'Món', 'Size', 'SL', 'Tạm tính', 'Ghi chú'].map((h) => (
+              {['Lúc đặt', 'Họ tên', 'Điện thoại', 'Món', 'Tổng', 'Ghi chú'].map((h) => (
                 <th key={h} className="whitespace-nowrap px-3 py-2.5">{h}</th>
               ))}
               <th className="px-3 py-2.5"><span className="sr-only">Thao tác</span></th>
@@ -59,10 +61,14 @@ export default function OrdersAdmin() {
                 <td className="px-3 py-2.5">{formatWhen(o.created_at)}</td>
                 <td className="px-3 py-2.5">{o.name}</td>
                 <td className="px-3 py-2.5">{o.phone}</td>
-                <td className="px-3 py-2.5">{o.item_name}</td>
-                <td className="px-3 py-2.5">{o.size || 'S'}</td>
-                <td className="px-3 py-2.5">{o.quantity}</td>
-                <td className="px-3 py-2.5">{money(o.unit_price * o.quantity)}</td>
+                <td className="px-3 py-2.5">
+                  <ul className="m-0 list-none p-0">
+                    {(o.order_items ?? []).map((i) => (
+                      <li key={i.id}>{i.item_name} (size {i.size}) × {i.quantity}</li>
+                    ))}
+                  </ul>
+                </td>
+                <td className="whitespace-nowrap px-3 py-2.5">{money(orderTotal(o))}</td>
                 <td className="px-3 py-2.5">{o.note}</td>
                 <td className="px-3 py-2.5">
                   <button
