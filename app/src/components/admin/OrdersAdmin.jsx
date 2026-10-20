@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { money } from '../../data/menu.js';
+import RetryButton from './RetryButton.jsx';
 
 const STATUS_LABEL = { new: 'Mới', done: 'Đã xong', cancelled: 'Đã hủy' };
 const statusOf = (o) => (STATUS_LABEL[o.status] ? o.status : 'new');
@@ -20,6 +21,7 @@ export default function OrdersAdmin() {
   const { request } = useAuth();
   const [orders, setOrders] = useState(null);
   const [message, setMessage] = useState(null); // lỗi hoặc kết quả của thao tác gần nhất; trống thì hiện số đơn
+  const [loadFailed, setLoadFailed] = useState(false);
   const [filter, setFilter] = useState('all');
   const [pending, setPending] = useState(() => new Set()); // id các đơn đang đổi trạng thái
 
@@ -30,7 +32,9 @@ export default function OrdersAdmin() {
       const list = await res.json();
       setOrders(list);
       setMessage(null);
+      setLoadFailed(false);
     } catch (e) {
+      if (e.message !== 'expired') setLoadFailed(true);
       if (e.message !== 'expired') setMessage({ isError: true, text: 'Không tải được danh sách đơn món. Bạn đã chạy supabase-orders.sql (bản mới có order_items) chưa?' });
     }
   }, [request]);
@@ -94,6 +98,7 @@ export default function OrdersAdmin() {
         </select>
       </div>
       <p role="status" className={`mb-3 font-bold ${shown.isError ? 'text-red-700 dark:text-red-400' : 'text-primary'}`}>{shown.text}</p>
+      {loadFailed && <RetryButton onClick={load} />}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse bg-surface shadow">
           <thead>

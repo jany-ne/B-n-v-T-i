@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
+import RetryButton from './RetryButton.jsx';
 
 const formatDate = (iso) => iso.split('-').reverse().join('/');
 
@@ -7,6 +8,7 @@ export default function BookingsAdmin() {
   const { request } = useAuth();
   const [bookings, setBookings] = useState(null); // null = đang tải
   const [message, setMessage] = useState('Đang tải...');
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -14,8 +16,10 @@ export default function BookingsAdmin() {
       if (!res.ok) throw new Error(res.status);
       const list = await res.json();
       setBookings(list);
+      setLoadFailed(false);
       setMessage(list.length ? `Có ${list.length} đơn đặt bàn.` : 'Chưa có đơn đặt bàn nào.');
     } catch (e) {
+      if (e.message !== 'expired') setLoadFailed(true);
       if (e.message !== 'expired') setMessage('Không tải được danh sách. Hãy đăng nhập lại bằng đúng tài khoản quản lý.');
     }
   }, [request]);
@@ -37,6 +41,7 @@ export default function BookingsAdmin() {
     <section aria-labelledby="bookings-title">
       <h2 id="bookings-title" className="mb-2 text-2xl font-bold">Đơn đặt bàn</h2>
       <p role="status" className="mb-3 font-bold text-primary">{message}</p>
+      {loadFailed && <RetryButton onClick={load} />}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse bg-surface shadow">
           <thead>

@@ -74,6 +74,21 @@ test.describe('chọn món', () => {
     await expect(page.getByRole('radio', { name: 'Size L' })).toBeDisabled();
   });
 
+  test('đang tải menu thì hiện khung xương và thông báo cho trình đọc màn hình', async ({ page }) => {
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    await page.route('https://favkwkfugnrpwmecpjka.supabase.co/rest/v1/menu_items*', async (route) => {
+      await gate;
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(MENU) });
+    });
+    await page.goto(APP + 'dat-mon');
+    await expect(page.getByRole('status')).toContainText('Đang tải menu...');
+    await expect(page.locator('[aria-hidden="true"].animate-pulse').first()).toBeVisible();
+    release();
+    await expect(page.getByText('Chọn món bạn muốn mua:')).toBeVisible();
+    await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  });
+
   test('không chọn món thì hiện danh sách để chọn', async ({ page }) => {
     await page.goto(APP + 'dat-mon');
     await expect(page.getByText('Chọn món bạn muốn mua:')).toBeVisible();

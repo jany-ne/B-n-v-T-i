@@ -164,6 +164,28 @@ test.describe('đơn đặt bàn', () => {
   });
 });
 
+test.describe('tải danh sách lỗi', () => {
+  test('đơn đặt bàn tải lỗi thì có nút Thử lại và tải lại được', async ({ page }) => {
+    await setup(page, { bookingsStatus: 500 });
+    await page.goto(APP + 'quan-ly');
+    await page.fill('#ad-email', 'chu@quan.test');
+    await page.fill('#ad-password', 'mat-khau');
+    await page.getByRole('button', { name: 'Đăng nhập' }).click();
+    await expect(page.getByText('Không tải được danh sách. Hãy đăng nhập lại')).toBeVisible();
+    // Máy chủ hoạt động lại: đăng ký lại địa chỉ giả (yêu cầu đăng ký sau được ưu tiên)
+    await mockSupabase(page, '/rest/v1/bookings*', () => ({ status: 200, body: BOOKINGS }));
+    await page.getByRole('button', { name: 'Thử lại' }).click();
+    await expect(page.locator('section[aria-labelledby="bookings-title"] tbody tr')).toHaveCount(2);
+    await expect(page.getByRole('button', { name: 'Thử lại' })).toHaveCount(0);
+  });
+
+  test('tải đúng thì không có nút Thử lại', async ({ page }) => {
+    await setup(page);
+    await login(page);
+    await expect(page.getByRole('button', { name: 'Thử lại' })).toHaveCount(0);
+  });
+});
+
 test.describe('đơn món', () => {
   test('đơn chưa có trạng thái được coi là Mới', async ({ page }) => {
     await setup(page);

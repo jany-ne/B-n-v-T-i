@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMenu } from '../hooks/useMenu.js';
+import Skeleton from '../components/Skeleton.jsx';
 import { SITE } from '../data/site.js';
 import { formatPrices, money, priceOf } from '../data/menu.js';
 import { asset } from '../lib/asset.js';
@@ -30,7 +31,12 @@ export default function OrderPage() {
         <p className="mb-7 text-center text-muted">{SITE.hours}. Chọn món vào giỏ, nhận tại quán, thanh toán khi lấy.</p>
 
         {status === 'loading' ? (
-          <p className="text-center text-muted">Đang tải menu...</p>
+          <div role="status" className="mx-auto w-full max-w-lg">
+            <p className="sr-only">Đang tải menu...</p>
+            <div className="rounded-lg bg-surface p-4 shadow">
+              {[0, 1, 2, 3].map((n) => <Skeleton key={n} className="my-3 h-6 w-full" />)}
+            </div>
+          </div>
         ) : !mon ? (
           <ItemPicker items={items} />
         ) : !item ? (

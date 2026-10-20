@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { formatPrices } from '../../data/menu.js';
 import ImageField from './ImageField.jsx';
+import RetryButton from './RetryButton.jsx';
 
 const nextSort = (list) => (list.length ? Math.max(...list.map((m) => m.sort)) + 1 : 1);
 const emptyForm = (list = []) => ({
@@ -26,6 +27,7 @@ export default function MenuAdmin() {
   const [status, setStatus] = useState(null); // { text, isError }
   const [busy, setBusy] = useState(false); // đang gửi form
   const [uploading, setUploading] = useState(false); // đang tải ảnh lên
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -33,8 +35,10 @@ export default function MenuAdmin() {
       if (!res.ok) throw new Error(res.status);
       const list = await res.json();
       setItems(list);
+      setLoadFailed(false);
       return list;
     } catch (e) {
+      if (e.message !== 'expired') setLoadFailed(true);
       if (e.message !== 'expired') setStatus({ isError: true, text: 'Không tải được menu. Bạn đã chạy supabase-menu.sql chưa?' });
       return null;
     }
@@ -167,6 +171,7 @@ export default function MenuAdmin() {
           )}
         </div>
         <p role="status" className={`mt-3 font-bold ${status?.isError ? 'text-red-700 dark:text-red-400' : 'text-primary'}`}>{status?.text}</p>
+        {loadFailed && <RetryButton onClick={() => load().then((list) => { if (list) setValues(emptyForm(list)); })} />}
       </form>
 
       <div className="overflow-x-auto">
