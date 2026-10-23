@@ -63,21 +63,13 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: |
-            app/package-lock.json
-            prompt5/package-lock.json
+          cache-dependency-path: app/package-lock.json
 
       # VITE_BASE: trang nằm trong thư mục con của tên repo trên GitHub Pages
       - name: Build bản React
         run: |
           npm ci --prefix app
           VITE_BASE=/ban-va-toi/ npm --prefix app run build
-
-      # Landing page nhà hàng (prompt5) nằm ở /ban-va-toi/prompt5/
-      - name: Build prompt5
-        run: |
-          npm ci --prefix prompt5
-          VITE_BASE=/ban-va-toi/prompt5/ npm --prefix prompt5 run build
 
       - name: Ghép trang web (bản React ở gốc, trang cũ giữ nguyên)
         run: bash scripts/build-site.sh
